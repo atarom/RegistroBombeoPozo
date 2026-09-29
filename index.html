@@ -262,80 +262,84 @@
         <div class="panel-head">
           <div>
             <h2>Registrar prueba real</h2>
-            <p>Completa los datos de la prueba. El registro se descargará como archivo JSON para subirlo posteriormente a GitHub.</p>
+            <p>Completa la prueba y descarga el JSON para subirlo a GitHub.</p>
           </div>
         </div>
         <form id="recordForm" class="record-form">
-          <div class="form-grid">
-            <label>
+          <div class="record-meta-grid">
+            <label class="record-field">
               <span>Fecha</span>
               <input id="recordDate" name="fecha" type="date" required />
             </label>
-            <label>
+            <label class="record-field">
               <span>Realizado por</span>
               <input id="recordBy" name="realizadoPor" type="text" maxlength="120" autocomplete="name" required />
             </label>
-            <label>
-              <span>Prueba ALARMA</span>
-              <select id="recordAlarm" name="pruebaAlarma" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
-            </label>
-            <label>
-              <span>Boya PARO flotando</span>
-              <select id="recordStop" name="boyaParo" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
-            </label>
-            <label>
-              <span>Forzar MARCHA con PARO flotando</span>
-              <select id="recordRun" name="forzarMarcha" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
-            </label>
-            <label>
-              <span>Vaciado automático / parada al caer PARO</span>
-              <select id="recordDrain" name="vaciadoAutomatico" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
-            </label>
-            <label>
-              <span>Modo manual preparado</span>
-              <select id="recordManual" name="modoManual" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
-            </label>
-            <label>
-              <span>Tiempo remanente real (s)</span>
+          </div>
+          <div class="record-measure-grid">
+            <label class="record-field">
+              <span>Tiempo remanente (s)</span>
               <input id="recordTime" name="tiempoRemanenteReal" type="number" min="0.1" step="0.1" inputmode="decimal" required />
             </label>
-            <label>
-              <span>Intensidad real (A)</span>
+            <label class="record-field">
+              <span>Intensidad (A)</span>
               <input id="recordAmps" name="intensidadReal" type="number" min="0.1" step="0.1" inputmode="decimal" required />
             </label>
-            <label>
-              <span>Resultado global (automático)</span>
-              <input id="recordResult" name="resultadoGlobal" type="text" value="Pendiente" readonly aria-live="polite" />
-            </label>
+            <div class="record-result-field">
+              <span>Resultado automático</span>
+              <div id="recordResult" class="record-result pending" role="status" aria-live="polite">Pendiente</div>
+            </div>
           </div>
-          <label class="observations-field">
+          <div class="record-checks-grid">
+            <div class="status-field">
+              <span class="status-label">Prueba ALARMA</span>
+              <input id="recordAlarm" name="pruebaAlarma" type="hidden" value="" />
+              <div class="status-toggle" data-input="recordAlarm" role="group" aria-label="Prueba ALARMA">
+                <button type="button" class="status-option" data-value="OK" aria-pressed="false">OK</button>
+                <button type="button" class="status-option" data-value="Revisar" aria-pressed="false">Revisar</button>
+              </div>
+            </div>
+            <div class="status-field">
+              <span class="status-label">Boya PARO flotando</span>
+              <input id="recordStop" name="boyaParo" type="hidden" value="" />
+              <div class="status-toggle" data-input="recordStop" role="group" aria-label="Boya PARO flotando">
+                <button type="button" class="status-option" data-value="OK" aria-pressed="false">OK</button>
+                <button type="button" class="status-option" data-value="Revisar" aria-pressed="false">Revisar</button>
+              </div>
+            </div>
+            <div class="status-field">
+              <span class="status-label">Forzar MARCHA con PARO flotando</span>
+              <input id="recordRun" name="forzarMarcha" type="hidden" value="" />
+              <div class="status-toggle" data-input="recordRun" role="group" aria-label="Forzar MARCHA con PARO flotando">
+                <button type="button" class="status-option" data-value="OK" aria-pressed="false">OK</button>
+                <button type="button" class="status-option" data-value="Revisar" aria-pressed="false">Revisar</button>
+              </div>
+            </div>
+            <div class="status-field">
+              <span class="status-label">Vaciado automático / parada al caer PARO</span>
+              <input id="recordDrain" name="vaciadoAutomatico" type="hidden" value="" />
+              <div class="status-toggle" data-input="recordDrain" role="group" aria-label="Vaciado automático y parada al caer PARO">
+                <button type="button" class="status-option" data-value="OK" aria-pressed="false">OK</button>
+                <button type="button" class="status-option" data-value="Revisar" aria-pressed="false">Revisar</button>
+              </div>
+            </div>
+            <div class="status-field status-field-wide">
+              <span class="status-label">Modo manual preparado</span>
+              <input id="recordManual" name="modoManual" type="hidden" value="" />
+              <div class="status-toggle" data-input="recordManual" role="group" aria-label="Modo manual preparado">
+                <button type="button" class="status-option" data-value="OK" aria-pressed="false">OK</button>
+                <button type="button" class="status-option" data-value="Revisar" aria-pressed="false">Revisar</button>
+              </div>
+            </div>
+          </div>
+          <label class="observations-field record-field">
             <span>Observaciones</span>
-            <textarea id="recordNotes" name="observaciones" rows="5" maxlength="2000"></textarea>
+            <textarea id="recordNotes" name="observaciones" rows="2" maxlength="2000" placeholder="Opcional"></textarea>
           </label>
           <div id="recordMessage" class="form-message" aria-live="polite"></div>
           <div class="form-actions">
             <button type="reset">Limpiar</button>
-            <button type="submit" class="primary">Generar y descargar registro</button>
+            <button type="submit" class="primary">Generar registro</button>
           </div>
         </form>
       </section>

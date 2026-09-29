@@ -591,10 +591,22 @@ const buildRecord = () => {
   const record = readRecordForm();
   return { ...record, resultadoGlobal: calculateRecordResult(record) };
 };
-const updateRecordResult = () => {
-  const result = calculateRecordResult(readRecordForm());
-  $("#recordResult").value = result || "Pendiente";
+const setRecordResultVisual = (result) => {
+  const el = $("#recordResult");
+  el.textContent = result || "Pendiente";
+  el.className = `record-result ${result === "OK" ? "ok" : result === "Revisar" ? "review" : "pending"}`;
 };
+const updateRecordResult = () => setRecordResultVisual(calculateRecordResult(readRecordForm()));
+const syncStatusToggle = (toggle, value) => {
+  const input = document.getElementById(toggle.dataset.input);
+  input.value = value;
+  toggle.querySelectorAll(".status-option").forEach((button) => {
+    const active = button.dataset.value === value;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+};
+const resetRecordToggles = () => document.querySelectorAll(".status-toggle").forEach((toggle) => syncStatusToggle(toggle, ""));
 const prepareRecordForm = () => {
   if (!$("#recordDate").value) $("#recordDate").value = localDateValue();
   $("#recordMessage").textContent = "";
@@ -847,6 +859,14 @@ $("#recordModal").addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !$("#recordModal").classList.contains("hidden")) hideRecord();
 });
+document.querySelectorAll(".status-toggle").forEach((toggle) => {
+  toggle.addEventListener("click", (event) => {
+    const button = event.target.closest(".status-option");
+    if (!button) return;
+    syncStatusToggle(toggle, button.dataset.value);
+    updateRecordResult();
+  });
+});
 $("#recordForm").addEventListener("input", updateRecordResult);
 $("#recordForm").addEventListener("change", updateRecordResult);
 $("#recordForm").addEventListener("submit", (event) => {
@@ -868,6 +888,7 @@ $("#recordForm").addEventListener("reset", () => {
     $("#recordDate").value = localDateValue();
     $("#recordMessage").textContent = "";
     $("#recordMessage").className = "form-message";
+    resetRecordToggles();
     updateRecordResult();
   }, 0);
 });
