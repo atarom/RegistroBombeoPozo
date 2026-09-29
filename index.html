@@ -21,9 +21,7 @@
           <button id="resetBtn">Reiniciar</button>
         </div>
       </div>
-
       <div class="card progress" id="progress"></div>
-
       <div class="main" id="mainView">
         <section class="card visual">
           <div class="visual-grid">
@@ -32,18 +30,15 @@
                 <b>Depósito y boyas</b>
                 <span>Las tres cuelgan desde la misma barra</span>
               </div>
-
               <div class="tank-wrap">
                 <div class="tank">
                   <div class="rail"></div>
                   <div class="water" id="water">
                     <div class="remnant">Agua / remanente</div>
                   </div>
-
                   <div class="level l-alarm"></div>
                   <div class="level l-run"></div>
                   <div class="level l-stop"></div>
-
                   <div class="discharge" id="discharge">
                     <div class="vertical">
                       <div class="water-column" id="pipeWater"></div>
@@ -52,20 +47,17 @@
                     <div class="top-out"></div>
                     <div class="pipe-label">TUBO IMPULSIÓN</div>
                   </div>
-
                   <div class="pump" id="pump">
                     <div class="handle"></div>
                     <div class="motor"></div>
                     <div class="base"></div>
                     <div class="outlet"></div>
                   </div>
-
                   <div id="dryRunWarning" class="dry-warning hidden">
                     SIMULACIÓN · BOMBA EN VACÍO
                     <br />
                     <span>Vibración y calentamiento excesivos</span>
                   </div>
-
                   <div class="float f-stop" id="stopFloat">
                     <svg
                       class="cable-svg"
@@ -81,7 +73,6 @@
                     </div>
                     <div class="name">PARO</div>
                   </div>
-
                   <div class="float f-run" id="runFloat">
                     <svg
                       class="cable-svg"
@@ -97,7 +88,6 @@
                     </div>
                     <div class="name">MARCHA</div>
                   </div>
-
                   <div class="float f-alarm" id="alarmFloat">
                     <svg
                       class="cable-svg"
@@ -116,21 +106,17 @@
                 </div>
               </div>
             </div>
-
             <div class="control">
               <div class="titleline">
                 <b>Cuadro de control</b>
                 <span>Controlador</span>
               </div>
-
               <div class="cabinet">
                 <div class="siren" id="siren"></div>
                 <div class="slabel">SIRENA</div>
-
                 <div class="controller">
                   <div class="brand">CONTROL BOMBA</div>
                   <div class="lcd" id="lcd">AUTO</div>
-
                   <div class="ledrow">
                     <div class="leditem">
                       <span class="led power on"></span>
@@ -145,12 +131,10 @@
                       ALARM
                     </div>
                   </div>
-
                   <div class="mode-badge">
                     <b>STOP</b>
                     <span>AUTO</span>
                   </div>
-
                   <div class="ctrl-buttons">
                     <div class="ctrl-key">
                       Back
@@ -168,7 +152,6 @@
                   </div>
                 </div>
               </div>
-
               <div class="readouts">
                 <div class="readout">
                   <span>Tiempo</span>
@@ -182,14 +165,12 @@
             </div>
           </div>
         </section>
-
         <aside class="card guide">
           <div id="guideMode">
             <h2 id="stepTitle"></h2>
             <div class="body" id="instructions"></div>
             <div id="notice"></div>
             <div class="actions" id="actions"></div>
-
             <div class="measure" id="measurements">
               <label>
                 Tiempo real (s)
@@ -210,13 +191,10 @@
                 />
               </label>
             </div>
-
             <div id="result"></div>
           </div>
-
           <div id="simMode" class="sim-panel hidden">
             <h2>Simulación libre</h2>
-
             <div class="sim-grid">
               <div class="sim-block">
                 <label>
@@ -232,7 +210,6 @@
                   value="26"
                 />
               </div>
-
               <div class="sim-block">
                 <div class="sim-row">
                   <label for="simStop">PARO</label>
@@ -242,7 +219,6 @@
                     <option value="down">Forzar colgando</option>
                   </select>
                 </div>
-
                 <div class="sim-row">
                   <label for="simRun">MARCHA</label>
                   <select id="simRun">
@@ -251,7 +227,6 @@
                     <option value="down">Forzar colgando</option>
                   </select>
                 </div>
-
                 <div class="sim-row">
                   <label for="simAlarm">ALARMA</label>
                   <select id="simAlarm">
@@ -261,7 +236,6 @@
                   </select>
                 </div>
               </div>
-
               <div class="sim-block">
                 <label>
                   <span>Control de bomba</span>
@@ -274,10 +248,8 @@
                   <button id="simPumpOff">Parar</button>
                 </div>
               </div>
-
               <div class="sim-status" id="simStatus"></div>
             </div>
-
             <div class="sim-help">
               En AUTO, PARO + MARCHA arrancan la bomba y PARO la detiene al
               caer. La ALARMA actúa de forma independiente. Puedes forzar las
@@ -293,7 +265,6 @@
             <p>Completa los datos de la prueba. El registro se descargará como archivo JSON para subirlo posteriormente a GitHub.</p>
           </div>
         </div>
-
         <form id="recordForm" class="record-form">
           <div class="form-grid">
             <label>
@@ -353,29 +324,21 @@
               <input id="recordAmps" name="intensidadReal" type="number" min="0.1" step="0.1" inputmode="decimal" required />
             </label>
             <label>
-              <span>Resultado global</span>
-              <select id="recordResult" name="resultadoGlobal" required>
-                <option value="">Seleccionar</option>
-                <option value="OK">OK</option>
-                <option value="Revisar">Revisar</option>
-              </select>
+              <span>Resultado global (automático)</span>
+              <input id="recordResult" name="resultadoGlobal" type="text" value="Pendiente" readonly aria-live="polite" />
             </label>
           </div>
-
           <label class="observations-field">
             <span>Observaciones</span>
             <textarea id="recordNotes" name="observaciones" rows="5" maxlength="2000"></textarea>
           </label>
-
           <div id="recordMessage" class="form-message" aria-live="polite"></div>
-
           <div class="form-actions">
             <button type="reset">Limpiar</button>
             <button type="submit" class="primary">Generar y descargar registro</button>
           </div>
         </form>
       </section>
-
       <section class="card history-panel hidden" id="historyMode">
         <div class="panel-head history-head">
           <div>
@@ -384,9 +347,7 @@
           </div>
           <button id="reloadHistory" type="button">Actualizar</button>
         </div>
-
         <div id="historyStatus" class="history-status" aria-live="polite"></div>
-
         <div id="historyCharts" class="history-charts hidden">
           <section class="chart-card">
             <div class="chart-heading">
@@ -397,7 +358,6 @@
             </div>
             <div id="ampsChart" class="chart-wrap"></div>
           </section>
-
           <section class="chart-card">
             <div class="chart-heading">
               <div>
@@ -409,7 +369,6 @@
           </section>
         </div>
       </section>
-
       <div class="record-modal hidden" id="recordModal" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
         <div class="record-modal-card">
           <div class="record-modal-head">
@@ -420,7 +379,6 @@
         </div>
       </div>
     </div>
-
     <script src="./script.js"></script>
   </body>
 </html>

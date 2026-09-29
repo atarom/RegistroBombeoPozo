@@ -2,7 +2,6 @@ const REF_SECONDS = 47,
   REF_AMPS = 2.9,
   TOL_SECONDS = 8,
   TOL_AMPS = 0.1;
-
 const CONFIG = {
   title: "Mantenimiento preventivo · Bomba de aguas fecales",
   levels: { initial: 26, remanent: 14, empty: 3 },
@@ -14,9 +13,7 @@ const CONFIG = {
     buoyancyBand: 8
   }
 };
-
 const $ = (s) => document.querySelector(s);
-
 const state = {
   step: 0,
   pump: false,
@@ -36,7 +33,6 @@ const state = {
     dryRun: false
   }
 };
-
 const ui = {
   progress: $("#progress"),
   water: $("#water"),
@@ -67,14 +63,12 @@ const ui = {
   registerMode: $("#registerMode"),
   historyMode: $("#historyMode")
 };
-
 const floatAngleAt = (name, level) => {
   const t = CONFIG.simulation.thresholds[name];
   const b = CONFIG.simulation.buoyancyBand;
   const p = Math.max(0, Math.min(1, (level - (t - b * 0.75)) / b));
   return CONFIG.simulation.floatAngle * p;
 };
-
 const floatRiseAt = (el, level) => {
   const base =
     parseFloat(getComputedStyle(el).getPropertyValue("--cable")) || 0;
@@ -82,7 +76,6 @@ const floatRiseAt = (el, level) => {
   const target = surface - el.offsetTop - 28;
   return Math.min(0, Math.max(-Math.max(0, base - 58), target - base));
 };
-
 const drawCable = (el, rise = 0) => {
   const path = el.querySelector(".cable-path");
   if (!path) return;
@@ -99,7 +92,6 @@ const drawCable = (el, rise = 0) => {
     );
   } else path.setAttribute("d", `M${x} 0 L${x} ${y}`);
 };
-
 const setFloatVisual = (el, angle, rise = 0) => {
   el.style.setProperty(
     "--float-angle",
@@ -108,7 +100,6 @@ const setFloatVisual = (el, angle, rise = 0) => {
   el.style.setProperty("--float-rise", `${rise}px`);
   drawCable(el, rise);
 };
-
 const updateGuideFloat = () => {
   if (state.mode === "guide" && ui.stop.classList.contains("up")) {
     setFloatVisual(
@@ -118,7 +109,6 @@ const updateGuideFloat = () => {
     );
   }
 };
-
 const setWater = (h) => {
   state.waterLevel = h;
   ui.water.style.transitionDuration = state.mode === "sim" ? "0s" : "";
@@ -130,7 +120,6 @@ const setWater = (h) => {
   );
   updateGuideFloat();
 };
-
 const setFloat = (el, on) => {
   el.classList.toggle("up", on);
   if (!on) return setFloatVisual(el, 0, 0);
@@ -143,7 +132,6 @@ const setFloat = (el, on) => {
   }
   setFloatVisual(el, CONFIG.simulation.floatAngle, -30);
 };
-
 const setPump = (on) => {
   state.pump = on;
   ui.pipeWater.style.transitionDuration = on ? ".3s" : ".95s";
@@ -157,13 +145,11 @@ const setPump = (on) => {
       ? `RUN<br>${REF_AMPS.toFixed(1)} A`
       : "AUTO";
 };
-
 const setDryRun = (on) => {
   state.sim.dryRun = on;
   ui.pump.classList.toggle("dry-run", on);
   ui.dryRunWarning.classList.toggle("hidden", !on);
 };
-
 const setAlarm = (on, move = true) => {
   state.alarm = on;
   if (move) setFloat(ui.alarm, on);
@@ -175,7 +161,6 @@ const setAlarm = (on, move = true) => {
       ? `RUN<br>${REF_AMPS.toFixed(1)} A`
       : "AUTO";
 };
-
 const simFloatState = (name) => {
   const o = state.sim.overrides[name];
   return (
@@ -183,7 +168,6 @@ const simFloatState = (name) => {
     (o === "auto" && state.sim.level >= CONFIG.simulation.thresholds[name])
   );
 };
-
 const simFloatAngle = (name) => {
   const o = state.sim.overrides[name];
   return o === "up"
@@ -192,7 +176,6 @@ const simFloatAngle = (name) => {
       ? 0
       : floatAngleAt(name, state.sim.level);
 };
-
 const simFloatRise = (name) => {
   const o = state.sim.overrides[name];
   const el = name === "stop" ? ui.stop : name === "run" ? ui.run : ui.alarm;
@@ -200,37 +183,30 @@ const simFloatRise = (name) => {
   if (o === "up") return -30;
   return simFloatAngle(name) > 0 ? floatRiseAt(el, state.sim.level) : 0;
 };
-
 const floatText = (name, active) => {
   if (active) return "flotando";
   return simFloatAngle(name) > 8 ? "basculando" : "colgando";
 };
-
 const syncSimFloats = () => {
   const stop = simFloatState("stop");
   const run = simFloatState("run");
   const alarm = simFloatState("alarm");
-
   setFloatVisual(ui.stop, simFloatAngle("stop"), simFloatRise("stop"));
   setFloatVisual(ui.run, simFloatAngle("run"), simFloatRise("run"));
   setFloatVisual(ui.alarm, simFloatAngle("alarm"), simFloatRise("alarm"));
   setAlarm(alarm, false);
-
   if (state.sim.control === "auto") {
     if (!state.sim.latched && stop && run) state.sim.latched = true;
     if (state.sim.latched && !stop) state.sim.latched = false;
     setPump(state.sim.latched);
   }
-
   setDryRun(state.pump && state.sim.level <= 0);
-
   $("#simStatus").innerHTML =
     `Nivel <b>${state.sim.level.toFixed(1)}%</b> · PARO <b>${floatText("stop", stop)}</b> · MARCHA <b>${floatText("run", run)}</b> · ALARMA <b>${alarm ? "activa" : floatText("alarm", false)}</b> · Bomba <b>${state.pump ? "ON" : "OFF"}</b>` +
     (state.sim.dryRun
       ? "<br><b>SIMULACIÓN:</b> bomba funcionando en vacío. Detener inmediatamente."
       : "");
 };
-
 const setSimLevel = (value) => {
   state.sim.level = Math.max(0, Math.min(75, Number(value) || 0));
   setWater(state.sim.level);
@@ -239,49 +215,40 @@ const setSimLevel = (value) => {
   syncSimFloats();
   ensureSimDrain();
 };
-
 const stopSimDrain = () => {
   if (state.sim.raf) cancelAnimationFrame(state.sim.raf);
   state.sim.raf = 0;
   state.sim.last = 0;
 };
-
 const simDrainTick = (now) => {
   if (state.mode !== "sim" || !state.pump) {
     state.sim.raf = 0;
     state.sim.last = 0;
     return;
   }
-
   if (!state.sim.last) state.sim.last = now;
-
   const dt = Math.min((now - state.sim.last) / 1000, 0.1);
   state.sim.last = now;
-
   if (state.sim.level > 0) {
     setSimLevel(
       Math.max(0, state.sim.level - CONFIG.simulation.drainPerSecond * dt)
     );
   }
-
   if (state.sim.level <= 0 && state.pump) {
     setDryRun(true);
     $("#simStatus").innerHTML =
       "Nivel <b>0%</b> · Bomba <b>ON</b><br><b>SIMULACIÓN:</b> bomba funcionando en vacío. Vibración y calentamiento excesivos.";
   }
-
   if (state.pump) state.sim.raf = requestAnimationFrame(simDrainTick);
   else {
     state.sim.raf = 0;
     state.sim.last = 0;
   }
 };
-
 const ensureSimDrain = () => {
   if (state.pump && !state.sim.raf)
     state.sim.raf = requestAnimationFrame(simDrainTick);
 };
-
 const renderSim = () => {
   $("#simLevel").value = state.sim.level;
   $("#simLevelValue").textContent = state.sim.level.toFixed(1) + "%";
@@ -299,13 +266,11 @@ const renderSim = () => {
   syncSimFloats();
   ensureSimDrain();
 };
-
 const syncModeUi = () => {
   const guide = state.mode === "guide";
   const sim = state.mode === "sim";
   const register = state.mode === "register";
   const history = state.mode === "history";
-
   document.body.classList.toggle("simulating", sim);
   ui.mainView.classList.toggle("hidden", !(guide || sim));
   ui.progress.classList.toggle("hidden", !(guide || sim));
@@ -319,19 +284,15 @@ const syncModeUi = () => {
   $("#historyBtn").classList.toggle("mode-active", history);
   $("#resetBtn").disabled = !(guide || sim);
 };
-
 const enterMode = (mode) => {
   if (!["guide", "sim", "register", "history"].includes(mode)) return;
-
   if (state.timer) {
     clearInterval(state.timer);
     state.timer = null;
   }
-
   stopSimDrain();
   state.mode = mode;
   syncModeUi();
-
   if (mode === "sim") {
     state.sim.level = CONFIG.levels.initial;
     state.sim.control = "auto";
@@ -344,51 +305,39 @@ const enterMode = (mode) => {
     renderSim();
     return;
   }
-
   if (mode === "guide") {
     resetApp(false);
     return;
   }
-
   setPump(false);
   setDryRun(false);
   setAlarm(false);
-
   if (mode === "register") prepareRecordForm();
   if (mode === "history") loadHistory();
 };
-
 const animateWater = (from, to, duration, onFrame) =>
   new Promise((resolve) => {
     const start = performance.now();
-
     const tick = (now) => {
       const p = Math.min((now - start) / duration, 1);
       const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-
       setWater(from + (to - from) * eased);
       if (onFrame) onFrame(p);
-
       if (p < 1) requestAnimationFrame(tick);
       else resolve();
     };
-
     requestAnimationFrame(tick);
   });
-
 const next = () => {
   state.step = Math.min(state.step + 1, STEPS.length - 1);
   render();
 };
-
 const fail = (m) =>
   (ui.result.innerHTML = `<div class="result bad">${m}</div>`);
 const ok = (m) => (ui.result.innerHTML = `<div class="result ok">${m}</div>`);
-
 const autoDrain = async () => {
   setFloat(ui.run, false);
   let stopDropped = false;
-
   await animateWater(
     CONFIG.levels.initial,
     CONFIG.levels.remanent,
@@ -400,69 +349,54 @@ const autoDrain = async () => {
       }
     }
   );
-
   setPump(false);
   next();
 };
-
 const startManual = () => {
   setPump(true);
   state.start = performance.now();
-
   state.timer = setInterval(() => {
     ui.timer.textContent =
       ((performance.now() - state.start) / 1000).toFixed(1) + " s";
   }, 100);
-
   setWater(CONFIG.levels.empty);
   ui.actions.innerHTML =
     '<button class="danger" id="stopNow">DETENER BOMBA</button>';
   $("#stopNow").addEventListener("click", stopManual);
 };
-
 const stopManual = () => {
   if (!state.timer) return;
-
   clearInterval(state.timer);
   state.timer = null;
-
   const t = (performance.now() - state.start) / 1000;
-
   setPump(false);
   $("#measuredTime").value = t.toFixed(1);
-
   ui.actions.innerHTML =
     '<button class="good" id="compareBtn">Comparar resultados</button>';
   $("#compareBtn").addEventListener("click", evaluate);
-
   ui.notice.innerHTML =
     '<div class="notice">Parada inmediata al detectar por sonido que la bomba empieza a quedarse sin agua. Nunca mantenerla trabajando en vacío.</div>';
 };
-
 const evaluate = () => {
   const t = Number($("#measuredTime").value);
   const a = Number($("#measuredAmp").value);
-
   if (!(t > 0) || !(a > 0)) {
     return fail(
       "Introduce el tiempo y la intensidad obtenidos en la prueba real."
     );
   }
-
   const issues = [
     Math.abs(t - REF_SECONDS) > TOL_SECONDS &&
       `Tiempo fuera de rango (${REF_SECONDS - TOL_SECONDS}–${REF_SECONDS + TOL_SECONDS} s): revisar caudal, obstrucciones, impulsión y bomba.`,
     Math.abs(a - REF_AMPS) > TOL_AMPS + 0.0001 &&
       `Intensidad fuera de rango (${(REF_AMPS - TOL_AMPS).toFixed(1)}–${(REF_AMPS + TOL_AMPS).toFixed(1)} A): revisar carga, bomba y alimentación.`
   ].filter(Boolean);
-
   issues.length
     ? fail(issues.join("<br>"))
     : ok(
         "Valores dentro de referencia. Registrar el mantenimiento en la hoja A4."
       );
 };
-
 const STEPS = [
   {
     t: "Prueba de ALARMA",
@@ -521,23 +455,18 @@ const STEPS = [
     special: "end"
   }
 ];
-
 function render() {
   ui.title.textContent = CONFIG.title;
-
   ui.progress.innerHTML =
     `<div class="progress-current"><b>${state.step + 1}/${STEPS.length}</b><span>${STEPS[state.step].t}</span></div>` +
     `<div class="progress-track">${STEPS.map((s, i) => `<div class="stepdot ${i === state.step ? "active" : i < state.step ? "done" : ""}" title="${i + 1}. ${s.t}"><i>${i + 1}</i></div>`).join("")}</div>`;
-
   const s = STEPS[state.step];
-
   ui.stepTitle.textContent = `${state.step + 1}. ${s.t}`;
   ui.instructions.innerHTML = s.x;
   ui.notice.innerHTML = s.n ? `<div class="notice">${s.n}</div>` : "";
   ui.result.innerHTML = "";
   ui.measurements.style.display =
     s.special === "manual" || s.special === "compare" ? "grid" : "none";
-
   if (s.special === "alarm") {
     const phases = [
       [
@@ -571,12 +500,9 @@ function render() {
         }
       ]
     ];
-
     const [markup, fn] = phases[state.alarmPhase];
-
     ui.actions.innerHTML = markup;
     $("#alarmAction").addEventListener("click", fn);
-
     const alarmFail = $("#alarmFail");
     if (alarmFail) {
       alarmFail.addEventListener("click", () =>
@@ -587,14 +513,12 @@ function render() {
     }
     return;
   }
-
   if (s.special === "manual") {
     ui.actions.innerHTML =
       '<button class="primary" id="manualBtn">Iniciar prueba manual</button>';
     $("#manualBtn").addEventListener("click", startManual);
     return;
   }
-
   if (s.special === "compare") {
     ui.actions.innerHTML =
       '<button class="good" id="compareBtn">Comparar resultados</button><button id="nextBtn">Continuar al registro</button>';
@@ -602,36 +526,28 @@ function render() {
     $("#nextBtn").addEventListener("click", next);
     return;
   }
-
   if (s.special === "end") {
     ui.actions.innerHTML =
       '<button class="primary" id="restartGuide">Repetir guía</button>';
     $("#restartGuide").addEventListener("click", () => resetApp());
     return;
   }
-
   const buttons = [];
-
   if (s.action) {
     buttons.push(
       `<button class="primary" id="actionBtn">${s.actionLabel}</button>`
     );
   }
-
   buttons.push(
     `<button class="good" id="confirmBtn">${s.confirmLabel}</button>`
   );
-
   if (s.fail) {
     buttons.push('<button id="failBtn">No funciona correctamente</button>');
   }
-
   ui.actions.innerHTML = buttons.join("");
-
   if (s.action) {
     $("#actionBtn").addEventListener("click", s.action);
   }
-
   $("#confirmBtn").addEventListener("click", async () => {
     if (!s.confirm()) {
       return fail(
@@ -641,24 +557,25 @@ function render() {
     if (s.onConfirm) await s.onConfirm();
     else next();
   });
-
   if (s.fail) {
     $("#failBtn").addEventListener("click", () => fail(s.fail));
   }
 }
-
 const pad2 = (n) => String(n).padStart(2, "0");
-
 const localDateValue = (date = new Date()) =>
   `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-
-const prepareRecordForm = () => {
-  if (!$("#recordDate").value) $("#recordDate").value = localDateValue();
-  $("#recordMessage").textContent = "";
-  $("#recordMessage").className = "form-message";
+const recordStatusKeys = ["pruebaAlarma", "boyaParo", "forzarMarcha", "vaciadoAutomatico", "modoManual"];
+const calculateRecordResult = (record) => {
+  const statuses = recordStatusKeys.map((key) => record[key]);
+  const time = Number(record.tiempoRemanenteReal);
+  const amps = Number(record.intensidadReal);
+  if (statuses.some((value) => !value) || !(time > 0) || !(amps > 0)) return "";
+  const checksOk = statuses.every((value) => value === "OK");
+  const timeOk = Math.abs(time - REF_SECONDS) <= TOL_SECONDS;
+  const ampsOk = Math.abs(amps - REF_AMPS) <= TOL_AMPS + 0.0001;
+  return checksOk && timeOk && ampsOk ? "OK" : "Revisar";
 };
-
-const buildRecord = () => ({
+const readRecordForm = () => ({
   fecha: $("#recordDate").value,
   realizadoPor: $("#recordBy").value.trim(),
   pruebaAlarma: $("#recordAlarm").value,
@@ -668,10 +585,22 @@ const buildRecord = () => ({
   modoManual: $("#recordManual").value,
   tiempoRemanenteReal: Number($("#recordTime").value),
   intensidadReal: Number($("#recordAmps").value),
-  resultadoGlobal: $("#recordResult").value,
   observaciones: $("#recordNotes").value.trim()
 });
-
+const buildRecord = () => {
+  const record = readRecordForm();
+  return { ...record, resultadoGlobal: calculateRecordResult(record) };
+};
+const updateRecordResult = () => {
+  const result = calculateRecordResult(readRecordForm());
+  $("#recordResult").value = result || "Pendiente";
+};
+const prepareRecordForm = () => {
+  if (!$("#recordDate").value) $("#recordDate").value = localDateValue();
+  $("#recordMessage").textContent = "";
+  $("#recordMessage").className = "form-message";
+  updateRecordResult();
+};
 const downloadRecord = (record) => {
   const now = new Date();
   const time = `${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
@@ -689,25 +618,14 @@ const downloadRecord = (record) => {
   URL.revokeObjectURL(url);
   return filename;
 };
-
 const validateRecord = (record) => {
-  const statuses = [
-    record.pruebaAlarma,
-    record.boyaParo,
-    record.forzarMarcha,
-    record.vaciadoAutomatico,
-    record.modoManual,
-    record.resultadoGlobal
-  ];
-  if (!record.fecha || !record.realizadoPor || statuses.some((v) => !v)) {
-    return "Completa todos los campos obligatorios.";
-  }
-  if (!(record.tiempoRemanenteReal > 0) || !(record.intensidadReal > 0)) {
-    return "Tiempo e intensidad deben ser valores mayores que cero.";
-  }
+  const statuses = recordStatusKeys.map((key) => record[key]);
+  if (!record.fecha || !record.realizadoPor || statuses.some((value) => !value)) return "Completa todos los campos obligatorios.";
+  if (!(record.tiempoRemanenteReal > 0) || !(record.intensidadReal > 0)) return "Tiempo e intensidad deben ser valores mayores que cero.";
+  const expectedResult = calculateRecordResult(record);
+  if (!expectedResult || record.resultadoGlobal !== expectedResult) return "No se ha podido calcular correctamente el resultado global.";
   return "";
 };
-
 const escapeHtml = (value) =>
   String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -715,7 +633,6 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-
 const parseRecordTimestamp = (path, record) => {
   const name = path.split("/").pop() || "";
   const match = name.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})?\.json$/);
@@ -729,7 +646,6 @@ const parseRecordTimestamp = (path, record) => {
   }
   return 0;
 };
-
 const formatRecordMoment = (item) => {
   if (!item.timestamp) return item.record.fecha || "Sin fecha";
   const d = new Date(item.timestamp);
@@ -738,7 +654,6 @@ const formatRecordMoment = (item) => {
   const hasTime = /_\d{4,6}\.json$/.test(name);
   return hasTime ? `${date} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}` : date;
 };
-
 const showRecord = (item) => {
   const r = item.record;
   const rows = [
@@ -754,7 +669,6 @@ const showRecord = (item) => {
     ["Resultado global", r.resultadoGlobal, true],
     ["Observaciones", r.observaciones || "—"]
   ];
-
   $("#recordModalTitle").textContent = `Prueba · ${formatRecordMoment(item)}`;
   $("#recordModalBody").innerHTML = rows
     .map(([label, value, status]) => {
@@ -769,16 +683,13 @@ const showRecord = (item) => {
   $("#recordModal").classList.remove("hidden");
   $("#closeRecordModal").focus();
 };
-
 const hideRecord = () => $("#recordModal").classList.add("hidden");
-
 const renderChart = (container, items, key, unit, reference, tolerance) => {
   const values = items.map((item) => Number(item.record[key])).filter(Number.isFinite);
   if (!values.length) {
     container.innerHTML = "";
     return;
   }
-
   const width = 960;
   const height = 320;
   const left = 66;
@@ -794,7 +705,6 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
   const span = Math.max(yMax - yMin, key === "intensidadReal" ? 0.4 : 8);
   yMin -= span * 0.18;
   yMax += span * 0.18;
-
   const times = items.map((item) => item.timestamp);
   const minT = Math.min(...times);
   const maxT = Math.max(...times);
@@ -803,19 +713,16 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
     return left + ((item.timestamp - minT) / (maxT - minT)) * plotW;
   };
   const yAt = (value) => top + ((yMax - value) / (yMax - yMin)) * plotH;
-
   const yTicks = Array.from({ length: 5 }, (_, i) => yMin + ((yMax - yMin) * i) / 4);
   const labelIndexes = new Set();
   const tickCount = Math.min(6, items.length);
   for (let i = 0; i < tickCount; i++) {
     labelIndexes.add(Math.round((i * (items.length - 1)) / Math.max(1, tickCount - 1)));
   }
-
   const points = items.map((item, i) => [xAt(item, i), yAt(Number(item.record[key]))]);
   const path = points.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
   const bandTop = yAt(upperRef);
   const bandBottom = yAt(lowerRef);
-
   const grid = yTicks
     .map((v) => {
       const y = yAt(v);
@@ -823,7 +730,6 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       return `<line class="chart-grid" x1="${left}" x2="${width - right}" y1="${y}" y2="${y}"></line><text class="chart-label" x="${left - 10}" y="${y + 4}" text-anchor="end">${label}</text>`;
     })
     .join("");
-
   const xLabels = items
     .map((item, i) => {
       if (!labelIndexes.has(i)) return "";
@@ -833,7 +739,6 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       return `<text class="chart-label" x="${x}" y="${height - 20}" text-anchor="middle">${label}</text>`;
     })
     .join("");
-
   const circles = items
     .map((item, i) => {
       const [x, y] = points[i];
@@ -841,9 +746,7 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       return `<circle class="chart-point" tabindex="0" role="button" aria-label="${escapeHtml(formatRecordMoment(item))}: ${value.toFixed(1)} ${unit}" data-record-index="${i}" cx="${x}" cy="${y}" r="6"><title>${escapeHtml(formatRecordMoment(item))} · ${value.toFixed(1)} ${unit}</title></circle>`;
     })
     .join("");
-
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-label="Gráfica histórica"><rect class="chart-band" x="${left}" y="${bandTop}" width="${plotW}" height="${Math.max(0, bandBottom - bandTop)}"></rect>${grid}<line class="chart-axis" x1="${left}" x2="${left}" y1="${top}" y2="${height - bottom}"></line><line class="chart-axis" x1="${left}" x2="${width - right}" y1="${height - bottom}" y2="${height - bottom}"></line><line class="chart-ref" x1="${left}" x2="${width - right}" y1="${yAt(reference)}" y2="${yAt(reference)}"></line><path class="chart-line" d="${path}"></path>${circles}${xLabels}</svg>`;
-
   container.querySelectorAll(".chart-point").forEach((point) => {
     const open = () => showRecord(items[Number(point.dataset.recordIndex)]);
     point.addEventListener("click", open);
@@ -855,25 +758,21 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
     });
   });
 };
-
 const loadHistory = async () => {
   const status = $("#historyStatus");
   const charts = $("#historyCharts");
   status.textContent = "Cargando registros…";
   charts.classList.add("hidden");
-
   try {
     const indexResponse = await fetch(`./data/index.json?t=${Date.now()}`, { cache: "no-store" });
     if (!indexResponse.ok) throw new Error("No se ha podido cargar data/index.json");
     const indexData = await indexResponse.json();
     const files = Array.isArray(indexData) ? indexData : indexData.files;
     if (!Array.isArray(files)) throw new Error("El índice de registros no es válido");
-
     if (!files.length) {
       status.textContent = "Todavía no hay registros en data/pruebas/.";
       return;
     }
-
     const loaded = await Promise.all(
       files.map(async (path) => {
         const response = await fetch(`./${path}?t=${Date.now()}`, { cache: "no-store" });
@@ -882,16 +781,13 @@ const loadHistory = async () => {
         return { path, record, timestamp: parseRecordTimestamp(path, record) };
       })
     );
-
     const items = loaded
       .filter((item) => Number.isFinite(Number(item.record.intensidadReal)) && Number.isFinite(Number(item.record.tiempoRemanenteReal)))
       .sort((a, b) => a.timestamp - b.timestamp || a.path.localeCompare(b.path));
-
     if (!items.length) {
       status.textContent = "No hay registros válidos para representar.";
       return;
     }
-
     status.textContent = `${items.length} ${items.length === 1 ? "registro cargado" : "registros cargados"}. Pulsa cualquier punto para ver la prueba completa.`;
     renderChart($("#ampsChart"), items, "intensidadReal", "A", REF_AMPS, TOL_AMPS);
     renderChart($("#timeChart"), items, "tiempoRemanenteReal", "s", REF_SECONDS, TOL_SECONDS);
@@ -900,15 +796,12 @@ const loadHistory = async () => {
     status.textContent = `No se ha podido cargar el histórico: ${error.message}`;
   }
 };
-
 const resetApp = (switchMode = true) => {
   if (state.timer) {
     clearInterval(state.timer);
     state.timer = null;
   }
-
   stopSimDrain();
-
   Object.assign(state, {
     step: 0,
     pump: false,
@@ -917,7 +810,6 @@ const resetApp = (switchMode = true) => {
     start: 0,
     waterLevel: CONFIG.levels.initial
   });
-
   state.sim = {
     level: CONFIG.levels.initial,
     control: "auto",
@@ -927,9 +819,7 @@ const resetApp = (switchMode = true) => {
     last: 0,
     dryRun: false
   };
-
   if (switchMode) state.mode = "guide";
-
   setPump(false);
   setDryRun(false);
   setAlarm(false);
@@ -937,16 +827,13 @@ const resetApp = (switchMode = true) => {
   setFloat(ui.stop, true);
   setFloat(ui.run, false);
   setFloat(ui.alarm, false);
-
   ui.timer.textContent = "0.0 s";
   ui.amps.textContent = "—";
   $("#measuredTime").value = "";
   $("#measuredAmp").value = "";
-
   syncModeUi();
   state.mode === "sim" ? renderSim() : state.mode === "guide" && render();
 };
-
 $("#guideBtn").addEventListener("click", () => enterMode("guide"));
 $("#simBtn").addEventListener("click", () => enterMode("sim"));
 $("#registerBtn").addEventListener("click", () => enterMode("register"));
@@ -960,6 +847,8 @@ $("#recordModal").addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !$("#recordModal").classList.contains("hidden")) hideRecord();
 });
+$("#recordForm").addEventListener("input", updateRecordResult);
+$("#recordForm").addEventListener("change", updateRecordResult);
 $("#recordForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const record = buildRecord();
@@ -979,11 +868,10 @@ $("#recordForm").addEventListener("reset", () => {
     $("#recordDate").value = localDateValue();
     $("#recordMessage").textContent = "";
     $("#recordMessage").className = "form-message";
+    updateRecordResult();
   }, 0);
 });
-
 $("#simLevel").addEventListener("input", (e) => setSimLevel(e.target.value));
-
 [
   ["simStop", "stop"],
   ["simRun", "run"],
@@ -995,14 +883,12 @@ $("#simLevel").addEventListener("input", (e) => setSimLevel(e.target.value));
     ensureSimDrain();
   });
 });
-
 $("#simAuto").addEventListener("click", () => {
   state.sim.control = "auto";
   state.sim.latched = false;
   setDryRun(false);
   renderSim();
 });
-
 $("#simManual").addEventListener("click", () => {
   state.sim.control = "manual";
   state.sim.latched = false;
@@ -1010,14 +896,12 @@ $("#simManual").addEventListener("click", () => {
   setPump(false);
   renderSim();
 });
-
 $("#simPumpOn").addEventListener("click", () => {
   if (state.sim.control !== "manual") return;
   setDryRun(state.sim.level <= 0);
   setPump(true);
   renderSim();
 });
-
 $("#simPumpOff").addEventListener("click", () => {
   if (state.sim.control !== "manual") return;
   setPump(false);
@@ -1025,7 +909,6 @@ $("#simPumpOff").addEventListener("click", () => {
   stopSimDrain();
   renderSim();
 });
-
 [
   ["stopFloat", "stop"],
   ["runFloat", "run"],
@@ -1033,18 +916,14 @@ $("#simPumpOff").addEventListener("click", () => {
 ].forEach(([id, name]) => {
   $("#" + id).addEventListener("click", () => {
     if (state.mode !== "sim") return;
-
     state.sim.overrides[name] =
       simFloatAngle(name) > CONFIG.simulation.floatAngle * 0.5 ? "down" : "up";
-
     $("#sim" + name[0].toUpperCase() + name.slice(1)).value =
       state.sim.overrides[name];
-
     syncSimFloats();
     ensureSimDrain();
   });
 });
-
 setWater(CONFIG.levels.initial);
 setFloat(ui.stop, true);
 setFloat(ui.run, false);
