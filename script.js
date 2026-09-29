@@ -901,6 +901,14 @@ document.querySelectorAll(".status-toggle").forEach((toggle) => {
     updateRecordResult();
   });
 });
+$("#recordHour").addEventListener("input", (event) => {
+  const digits = event.target.value.replace(/\D/g, "").slice(0, 4);
+  event.target.value = digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits;
+});
+$("#recordHour").addEventListener("blur", (event) => {
+  const digits = event.target.value.replace(/\D/g, "");
+  if (digits.length === 3) event.target.value = `0${digits[0]}:${digits.slice(1)}`;
+});
 $("#recordForm").addEventListener("input", updateRecordResult);
 $("#recordForm").addEventListener("change", updateRecordResult);
 $("#recordForm").addEventListener("submit", (event) => {

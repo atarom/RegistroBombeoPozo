@@ -272,7 +272,7 @@
 <form id="recordForm" class="record-form">
 <div class="record-top-grid">
 <label class="record-field"><span>Fecha</span><input id="recordDate" name="fecha" type="date" required /></label>
-<label class="record-field"><span>Hora</span><input id="recordHour" name="hora" type="time" step="60" required /></label>
+<label class="record-field"><span>Hora (24 h)</span><input id="recordHour" name="hora" type="text" inputmode="numeric" maxlength="5" placeholder="17:30" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" autocomplete="off" required /></label>
 <label class="record-field record-field-by"><span>Realizado por</span><input id="recordBy" name="realizadoPor" type="text" maxlength="120" autocomplete="name" required /></label>
 <label class="record-field"><span>Tiempo (s)</span><input id="recordTime" name="tiempoRemanenteReal" type="number" min="0.1" step="0.1" inputmode="decimal" required /></label>
 <label class="record-field"><span>Intensidad (A)</span><input id="recordAmps" name="intensidadReal" type="number" min="0.1" step="0.1" inputmode="decimal" required /></label>
