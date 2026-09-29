@@ -1,53 +1,15 @@
 # Mantenimiento preventivo · Bomba de aguas fecales
-
-Aplicación estática para GitHub Pages con cuatro áreas independientes:
-
-- Guía didáctica de la prueba.
-- Simulación libre.
-- Registro de una prueba real con descarga en JSON.
-- Histórico con gráfica de intensidad y gráfica de tiempo de vaciado remanente.
-
-## Publicación inicial
-
-1. Crea un repositorio en GitHub con rama `main`.
-2. Sube el contenido de este proyecto a la raíz del repositorio.
-3. En `Settings > Pages`, selecciona `Deploy from a branch`.
-4. Selecciona la rama `main` y la carpeta `/ (root)`.
-5. Guarda la configuración.
-
-## Registrar una prueba
-
-La opción `Registrar prueba` genera un archivo con nombre basado únicamente en la fecha y hora:
-
-`AAAA-MM-DD_HHMMSS.json`
-
-Ejemplo:
-
-`2026-09-29_153842.json`
-
-El archivo contiene los datos introducidos en el formulario y se descarga en el dispositivo del usuario. La web no tiene permisos de escritura sobre GitHub.
-
-## Incorporar una prueba al histórico
-
-1. Revisa el JSON descargado.
-2. Súbelo a `data/pruebas/` desde GitHub.
-3. El workflow `Actualizar índice de pruebas` valida los archivos y actualiza `data/index.json`.
-4. GitHub Pages publica el cambio y el nuevo registro aparece en las dos gráficas.
-
-Al pulsar cualquier punto de las gráficas se abre la ficha completa del registro.
-
-## Campos del registro
-
-- Fecha
-- Realizado por
-- Prueba ALARMA
-- Boya PARO flotando
-- Forzar MARCHA con PARO flotando
-- Vaciado automático / parada al caer PARO
-- Modo manual preparado
-- Tiempo remanente real (s)
-- Intensidad real (A)
-- Resultado global
-- Observaciones
-
-Los estados admitidos son `OK` y `Revisar`.
+Aplicación estática para GitHub Pages con guía didáctica, simulación libre, registro de pruebas reales e histórico.
+## Registro de pruebas
+El formulario genera un JSON con fecha y hora de la prueba, realizadas manualmente por el usuario, además de las comprobaciones, tiempo, intensidad, resultado global y observaciones.
+El resultado global se calcula automáticamente: solo es `OK` si todas las comprobaciones están en `OK` y tiempo e intensidad están dentro de los límites definidos en `config.json`; en cualquier otro caso es `Revisar`.
+El archivo se descarga con nombre `AAAA-MM-DD_HHMMSS.json`. La hora del nombre sirve como identificador técnico; la hora real de la prueba es el campo `hora` del JSON.
+## Histórico
+Los JSON oficiales se suben a `data/pruebas/`. El workflow `Actualizar índice de pruebas` valida los archivos y regenera `data/index.json`.
+El histórico ordena por fecha y hora de la prueba y permite varias pruebas en un mismo día. Los registros antiguos sin `hora` siguen siendo compatibles.
+## Configuración
+Las referencias, tolerancias y parámetros de simulación se modifican únicamente en `config.json`.
+## Simulación
+La simulación libre es didáctica e independiente del registro real. Incluye nivel, boyas, funcionamiento AUTO/MANUAL y cronómetro de bombeo.
+## Publicación
+GitHub Pages debe publicar la rama `main` desde `/ (root)`.
