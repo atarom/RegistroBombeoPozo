@@ -676,7 +676,7 @@ const downloadRecord = (record) => {
   const now = new Date();
   const time = `${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
   const filename = `${record.fecha}_${time}.json`;
-  const blob = new Blob([JSON.stringify(record, null, 2) + "\\n"], {
+  const blob = new Blob([JSON.stringify(record, null, 2) + "\n"], {
     type: "application/json;charset=utf-8"
   });
   const url = URL.createObjectURL(blob);
@@ -718,7 +718,7 @@ const escapeHtml = (value) =>
 
 const parseRecordTimestamp = (path, record) => {
   const name = path.split("/").pop() || "";
-  const match = name.match(/^(\\d{4})-(\\d{2})-(\\d{2})_(\\d{2})(\\d{2})(\\d{2})?\\.json$/);
+  const match = name.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})?\.json$/);
   if (match) {
     const [, y, m, d, hh, mm, ss = "00"] = match;
     return Date.UTC(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
@@ -735,7 +735,7 @@ const formatRecordMoment = (item) => {
   const d = new Date(item.timestamp);
   const date = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
   const name = item.path.split("/").pop() || "";
-  const hasTime = /_\\d{4,6}\\.json$/.test(name);
+  const hasTime = /_\d{4,6}\.json$/.test(name);
   return hasTime ? `${date} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}` : date;
 };
 
