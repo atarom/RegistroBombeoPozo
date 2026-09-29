@@ -1323,192 +1323,262 @@ body.simulating .float .pear {
   }
 }
 #registerMode {
-  padding: 12px;
+padding:10px 12px;
 }
-#registerMode .panel-head {
-  margin-bottom: 10px;
+.record-head {
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:8px;
 }
-#registerMode .panel-head p {
-  margin-top: 2px;
-  font-size: 0.78rem;
+.record-head h2 {
+margin:0;
+font-size:1.12rem;
 }
-.record-form {
-  gap: 9px;
+.record-head p {
+margin:1px 0 0;
+color:var(--muted);
+font-size:.72rem;
 }
-.record-meta-grid,
-.record-measure-grid,
-.record-checks-grid {
-  display: grid;
-  gap: 8px;
+.record-result-box {
+display:flex;
+align-items:center;
+gap:7px;
+flex:0 0 auto;
 }
-.record-meta-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.record-measure-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.record-checks-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.record-field,
-.status-field,
-.record-result-field {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-.record-field > span,
-.status-label,
-.record-result-field > span {
-  color: #dce4e8;
-  font-size: 0.74rem;
-  font-weight: 750;
-}
-.record-form input:not([type="hidden"]),
-.record-form textarea {
-  min-height: 40px;
-  padding: 0.52rem 0.7rem;
-}
-.record-form textarea {
-  min-height: 68px;
-}
-.status-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  padding: 3px;
-  min-height: 40px;
-  border: 1px solid #34424b;
-  border-radius: 9px;
-  background: #0e1519;
-}
-.status-option {
-  min-height: 32px;
-  padding: 0.3rem 0.55rem;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-.status-option[data-value="OK"].active {
-  background: #1d7c4c;
-  color: #fff;
-}
-.status-option[data-value="Revisar"].active {
-  background: #a43d38;
-  color: #fff;
+.record-result-box>span {
+color:var(--muted);
+font-size:.7rem;
+font-weight:750;
 }
 .record-result {
-  display: grid;
-  place-items: center;
-  min-height: 40px;
-  border: 1px solid #34424b;
-  border-radius: 9px;
-  font-weight: 850;
-  letter-spacing: 0.02em;
+display:grid;
+place-items:center;
+min-width:104px;
+height:32px;
+padding:0 10px;
+border:1px solid #34424b;
+border-radius:8px;
+font-size:.76rem;
+font-weight:850;
+letter-spacing:.02em;
 }
 .record-result.pending {
-  background: #0e1519;
-  color: var(--muted);
+background:#0e1519;
+color:var(--muted);
 }
 .record-result.ok {
-  border-color: #2f9d65;
-  background: #183f2d;
-  color: #8be0b4;
+background:#183f2d;
+border-color:#2f9d65;
+color:#8be0b4;
 }
 .record-result.review {
-  border-color: #c6514b;
-  background: #482422;
-  color: #ffaaa4;
+background:#482422;
+border-color:#c6514b;
+color:#ffaaa4;
 }
-.status-field-wide {
-  grid-column: 1 / -1;
+.record-form {
+display:grid;
+gap:7px;
 }
-.status-field-wide .status-toggle {
-  max-width: calc(50% - 4px);
+.record-top-grid {
+display:grid;
+grid-template-columns:1.2fr 1.2fr .7fr .7fr;
+gap:7px;
 }
-.observations-field {
-  gap: 4px;
+.record-field {
+display:grid;
+gap:2px;
+min-width:0;
+}
+.record-field>span,.status-label {
+color:#dce4e8;
+font-size:.68rem;
+font-weight:750;
+line-height:1.15;
+}
+.record-form input:not([type="hidden"]),.record-form textarea {
+width:100%;
+min-height:34px;
+border:1px solid #34424b;
+border-radius:8px;
+background:#0e1519;
+color:#fff;
+padding:.38rem .58rem;
+font:inherit;
+}
+.record-checks-grid {
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:5px 9px;
+}
+.status-field {
+display:grid;
+grid-template-columns:minmax(0,1fr) 150px;
+align-items:center;
+gap:8px;
+min-width:0;
+min-height:34px;
+}
+.status-toggle {
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:2px;
+height:34px;
+padding:2px;
+border:1px solid #34424b;
+border-radius:8px;
+background:#0e1519;
+}
+.status-option {
+min-height:0;
+height:28px;
+padding:0 5px;
+border:0;
+border-radius:6px;
+background:transparent;
+color:var(--muted);
+font-size:.7rem;
+font-weight:800;
+}
+.status-option[data-value="OK"].active {
+background:#1d7c4c;
+color:#fff;
+}
+.status-option[data-value="Revisar"].active {
+background:#a43d38;
+color:#fff;
+}
+.observations-field textarea {
+min-height:42px;
+height:42px;
+resize:vertical;
+}
+.record-footer {
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:8px;
+min-height:34px;
 }
 .form-message {
-  min-height: 18px;
-  line-height: 18px;
+min-height:0;
+color:var(--muted);
+font-size:.72rem;
+line-height:1.2;
+}
+.form-message:empty {
+display:none;
+}
+.form-message.ok {
+color:#7bddaa;
+}
+.form-message.bad {
+color:#f3a6a0;
 }
 .form-actions {
-  gap: 6px;
+display:flex;
+gap:5px;
+margin-left:auto;
 }
 .form-actions button {
-  min-height: 40px;
+min-height:34px;
+padding:.35rem .65rem;
+font-size:.72rem;
 }
-@media (max-width: 820px) {
-  .record-measure-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .record-result-field {
-    grid-column: 1 / -1;
-  }
+@media (max-width:820px) {
+.record-top-grid {
+grid-template-columns:repeat(2,minmax(0,1fr));
 }
-@media (max-width: 680px) {
-  #registerMode {
-    padding: 9px;
-  }
-  #registerMode .panel-head {
-    margin-bottom: 7px;
-  }
-  #registerMode .panel-head h2 {
-    font-size: 1rem;
-  }
-  #registerMode .panel-head p {
-    display: none;
-  }
-  .record-form {
-    gap: 7px;
-  }
-  .record-meta-grid,
-  .record-checks-grid {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-  .record-measure-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .record-result-field,
-  .status-field-wide {
-    grid-column: 1 / -1;
-  }
-  .status-field-wide .status-toggle {
-    max-width: none;
-  }
-  .record-field,
-  .status-field,
-  .record-result-field {
-    gap: 3px;
-  }
-  .record-field > span,
-  .status-label,
-  .record-result-field > span {
-    font-size: 0.7rem;
-  }
-  .record-form input:not([type="hidden"]),
-  .record-result,
-  .status-toggle {
-    min-height: 38px;
-  }
-  .status-option {
-    min-height: 30px;
-  }
-  .record-form textarea {
-    min-height: 58px;
-  }
-  .form-actions {
-    display: grid;
-    grid-template-columns: 0.72fr 1.28fr;
-  }
-  .form-actions button {
-    width: 100%;
-    padding-inline: 0.5rem;
-    font-size: 0.78rem;
-  }
+.status-field {
+grid-template-columns:minmax(0,1fr) 140px;
+}
+}
+@media (max-width:680px) {
+#registerMode {
+padding:8px;
+}
+.record-head {
+margin-bottom:6px;
+}
+.record-head h2 {
+font-size:.98rem;
+}
+.record-head p,.record-result-box>span {
+display:none;
+}
+.record-result {
+min-width:88px;
+height:30px;
+font-size:.7rem;
+}
+.record-form {
+gap:6px;
+}
+.record-top-grid {
+gap:5px;
+}
+.record-field>span,.status-label {
+font-size:.65rem;
+}
+.record-form input:not([type="hidden"]) {
+min-height:36px;
+padding:.4rem .5rem;
+}
+.record-checks-grid {
+grid-template-columns:1fr;
+gap:3px;
+}
+.status-field {
+grid-template-columns:minmax(0,1fr) 132px;
+gap:6px;
+min-height:32px;
+}
+.status-toggle {
+height:32px;
+}
+.status-option {
+height:26px;
+font-size:.66rem;
+}
+.observations-field textarea {
+min-height:38px;
+height:38px;
+}
+.record-footer {
+align-items:stretch;
+}
+.form-actions {
+margin-left:auto;
+}
+.form-actions button {
+min-height:34px;
+font-size:.7rem;
+padding:.3rem .55rem;
+}
+}
+@media (max-width:430px) {
+.record-top-grid {
+grid-template-columns:1fr 1fr;
+}
+.status-field {
+grid-template-columns:minmax(0,1fr) 116px;
+}
+.status-option {
+font-size:.62rem;
+padding:0 3px;
+}
+.record-footer {
+display:grid;
+grid-template-columns:1fr;
+}
+.form-actions {
+display:grid;
+grid-template-columns:.75fr 1.25fr;
+width:100%;
+}
+.form-actions button {
+width:100%;
+}
 }
