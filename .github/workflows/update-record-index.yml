@@ -1,17 +1,15 @@
 name: Actualizar índice de pruebas
-
 on:
   push:
     branches:
       - main
     paths:
       - "data/pruebas/**"
+      - "config.json"
       - "scripts/generate-index.mjs"
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   update-index:
     runs-on: ubuntu-latest
