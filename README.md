@@ -1,7 +1,7 @@
 # Mantenimiento preventivo · Bomba de aguas fecales
 Aplicación estática para GitHub Pages con guía didáctica, simulación libre, registro de pruebas reales e histórico.
 ## Registro de pruebas
-El formulario genera un JSON con fecha y hora de la prueba, realizadas manualmente por el usuario, además de las comprobaciones, tiempo, intensidad, resultado global y observaciones.
+El formulario genera un JSON con fecha y hora de la prueba. La fecha y la hora en formato 24 h se introducen manualmente, junto con las comprobaciones, tiempo, intensidad y observaciones.
 El resultado global se calcula automáticamente: solo es `OK` si todas las comprobaciones están en `OK` y tiempo e intensidad están dentro de los límites definidos en `config.json`; en cualquier otro caso es `Revisar`.
 El archivo se descarga con nombre `AAAA-MM-DD_HHMMSS.json`. La hora del nombre sirve como identificador técnico; la hora real de la prueba es el campo `hora` del JSON.
 ## Histórico

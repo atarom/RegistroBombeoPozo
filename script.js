@@ -74,6 +74,9 @@ const ui = {
   registerMode: $("#registerMode"),
   historyMode: $("#historyMode")
 };
+document.title = CONFIG.title;
+$("#measuredTime").placeholder = formatConfigNumber(REF_SECONDS);
+$("#measuredAmp").placeholder = formatConfigNumber(REF_AMPS);
 $("#ampsReference").textContent = `Referencia ${formatAmpReference()}`;
 $("#timeReference").textContent = `Referencia ${formatTimeReference()}`;
 const floatAngleAt = (name, level) => {
@@ -405,7 +408,7 @@ const evaluate = () => {
   const a = Number($("#measuredAmp").value);
   if (!(t > 0) || !(a > 0)) {
     return fail(
-      "Introduce el tiempo y la intensidad obtenidos en la prueba real."
+      "Introduce el tiempo y la intensidad obtenidos en esta prueba guiada."
     );
   }
   const issues = [
@@ -417,7 +420,7 @@ const evaluate = () => {
   issues.length
     ? fail(issues.join("<br>"))
     : ok(
-        "Valores dentro de referencia. Registrar el mantenimiento en la hoja A4."
+        "Valores dentro de referencia."
       );
 };
 const STEPS = [
@@ -469,7 +472,7 @@ const STEPS = [
   },
   {
     t: "Comparar resultados",
-    x: `Introduce los valores reales. Referencias: <b>${formatTimeReference()}</b> y <b>${formatAmpReference()}</b>.`,
+    x: `Introduce los valores obtenidos. Referencias: <b>${formatTimeReference()}</b> y <b>${formatAmpReference()}</b>.`,
     special: "compare"
   },
   {
@@ -544,7 +547,7 @@ function render() {
   }
   if (s.special === "compare") {
     ui.actions.innerHTML =
-      '<button class="good" id="compareBtn">Comparar resultados</button><button id="nextBtn">Continuar al registro</button>';
+      '<button class="good" id="compareBtn">Comparar resultados</button><button id="nextBtn">Continuar</button>';
     $("#compareBtn").addEventListener("click", evaluate);
     $("#nextBtn").addEventListener("click", next);
     return;
