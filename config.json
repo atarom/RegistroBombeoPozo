@@ -1,0 +1,31 @@
+{
+  "app": {
+    "titulo": "Mantenimiento preventivo · Bomba de aguas fecales"
+  },
+  "medidas": {
+    "tiempo": {
+      "referencia": 47,
+      "tolerancia": 8
+    },
+    "intensidad": {
+      "referencia": 2.9,
+      "tolerancia": 0.1
+    }
+  },
+  "simulacion": {
+    "niveles": {
+      "inicial": 26,
+      "remanente": 14,
+      "vacio": 3
+    },
+    "umbrales": {
+      "paro": 24,
+      "marcha": 48,
+      "alarma": 64
+    },
+    "vaciadoMs": 4200,
+    "descensoPorSegundo": 4,
+    "anguloBoya": 82,
+    "bandaFlotacion": 8
+  }
+}

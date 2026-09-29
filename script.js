@@ -1,18 +1,28 @@
-const REF_SECONDS = 47,
-  REF_AMPS = 2.9,
-  TOL_SECONDS = 8,
-  TOL_AMPS = 0.1;
+(async () => {
+const configResponse = await fetch(`./config.json?t=${Date.now()}`, { cache: "no-store" });
+if (!configResponse.ok) throw new Error("No se ha podido cargar config.json");
+const SETTINGS = await configResponse.json();
+const REF_SECONDS = Number(SETTINGS.medidas.tiempo.referencia);
+const REF_AMPS = Number(SETTINGS.medidas.intensidad.referencia);
+const TOL_SECONDS = Number(SETTINGS.medidas.tiempo.tolerancia);
+const TOL_AMPS = Number(SETTINGS.medidas.intensidad.tolerancia);
 const CONFIG = {
-  title: "Mantenimiento preventivo · Bomba de aguas fecales",
-  levels: { initial: 26, remanent: 14, empty: 3 },
+  title: SETTINGS.app.titulo,
+  levels: { initial: Number(SETTINGS.simulacion.niveles.inicial), remanent: Number(SETTINGS.simulacion.niveles.remanente), empty: Number(SETTINGS.simulacion.niveles.vacio) },
   simulation: {
-    autoDrainMs: 4200,
-    thresholds: { stop: 24, run: 48, alarm: 64 },
-    drainPerSecond: 4,
-    floatAngle: 82,
-    buoyancyBand: 8
+    autoDrainMs: Number(SETTINGS.simulacion.vaciadoMs),
+    thresholds: { stop: Number(SETTINGS.simulacion.umbrales.paro), run: Number(SETTINGS.simulacion.umbrales.marcha), alarm: Number(SETTINGS.simulacion.umbrales.alarma) },
+    drainPerSecond: Number(SETTINGS.simulacion.descensoPorSegundo),
+    floatAngle: Number(SETTINGS.simulacion.anguloBoya),
+    buoyancyBand: Number(SETTINGS.simulacion.bandaFlotacion)
   }
 };
+const configNumbers = [REF_SECONDS, REF_AMPS, TOL_SECONDS, TOL_AMPS, CONFIG.levels.initial, CONFIG.levels.remanent, CONFIG.levels.empty, CONFIG.simulation.autoDrainMs, CONFIG.simulation.thresholds.stop, CONFIG.simulation.thresholds.run, CONFIG.simulation.thresholds.alarm, CONFIG.simulation.drainPerSecond, CONFIG.simulation.floatAngle, CONFIG.simulation.buoyancyBand];
+const levelNumbers = [CONFIG.levels.initial, CONFIG.levels.remanent, CONFIG.levels.empty, CONFIG.simulation.thresholds.stop, CONFIG.simulation.thresholds.run, CONFIG.simulation.thresholds.alarm];
+if (!CONFIG.title || configNumbers.some((value) => !Number.isFinite(value)) || REF_SECONDS <= 0 || REF_AMPS <= 0 || TOL_SECONDS < 0 || TOL_AMPS < 0 || levelNumbers.some((value) => value < 0 || value > 100) || CONFIG.simulation.autoDrainMs <= 0 || CONFIG.simulation.drainPerSecond <= 0 || CONFIG.simulation.floatAngle <= 0 || CONFIG.simulation.buoyancyBand <= 0) throw new Error("config.json contiene valores no válidos");
+const formatConfigNumber = (value) => new Intl.NumberFormat("es-ES", { maximumFractionDigits: 3 }).format(value);
+const formatTimeReference = () => `${formatConfigNumber(REF_SECONDS)} s ± ${formatConfigNumber(TOL_SECONDS)} s`;
+const formatAmpReference = () => `${formatConfigNumber(REF_AMPS)} A ± ${formatConfigNumber(TOL_AMPS)} A`;
 const $ = (s) => document.querySelector(s);
 const state = {
   step: 0,
@@ -63,6 +73,8 @@ const ui = {
   registerMode: $("#registerMode"),
   historyMode: $("#historyMode")
 };
+$("#ampsReference").textContent = `Referencia ${formatAmpReference()}`;
+$("#timeReference").textContent = `Referencia ${formatTimeReference()}`;
 const floatAngleAt = (name, level) => {
   const t = CONFIG.simulation.thresholds[name];
   const b = CONFIG.simulation.buoyancyBand;
@@ -446,7 +458,7 @@ const STEPS = [
   },
   {
     t: "Comparar resultados",
-    x: "Introduce los valores reales. Referencias: <b>47 s ± 8 s</b> y <b>2,9 A ± 0,1 A</b>.",
+    x: `Introduce los valores reales. Referencias: <b>${formatTimeReference()}</b> y <b>${formatAmpReference()}</b>.`,
     special: "compare"
   },
   {
@@ -950,3 +962,7 @@ setFloat(ui.stop, true);
 setFloat(ui.run, false);
 setFloat(ui.alarm, false);
 render();
+})().catch((error) => {
+  const app = document.querySelector(".app");
+  if (app) app.innerHTML = `<div class="card" style="padding:16px"><b>Error de configuración</b><div>${String(error.message || error)}</div></div>`;
+});

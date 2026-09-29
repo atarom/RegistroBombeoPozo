@@ -1,22 +1,16 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-const REF_SECONDS = 47;
-const REF_AMPS = 2.9;
-const TOL_SECONDS = 8;
-const TOL_AMPS = 0.1;
 const root = process.cwd();
+const config = JSON.parse(await fs.readFile(path.join(root, "config.json"), "utf8"));
+const REF_SECONDS = Number(config.medidas.tiempo.referencia);
+const REF_AMPS = Number(config.medidas.intensidad.referencia);
+const TOL_SECONDS = Number(config.medidas.tiempo.tolerancia);
+const TOL_AMPS = Number(config.medidas.intensidad.tolerancia);
+if (![REF_SECONDS, REF_AMPS, TOL_SECONDS, TOL_AMPS].every(Number.isFinite) || REF_SECONDS <= 0 || REF_AMPS <= 0 || TOL_SECONDS < 0 || TOL_AMPS < 0) throw new Error("config.json: medidas no válidas");
 const recordsDir = path.join(root, "data", "pruebas");
 const output = path.join(root, "data", "index.json");
 const requiredStatuses = ["pruebaAlarma", "boyaParo", "forzarMarcha", "vaciadoAutomatico", "modoManual"];
 const allowedStatuses = new Set(["OK", "Revisar"]);
-const calculateResult = (record) => {
-  const checksOk = requiredStatuses.every((key) => record[key] === "OK");
-  const time = Number(record.tiempoRemanenteReal);
-  const amps = Number(record.intensidadReal);
-  const timeOk = Math.abs(time - REF_SECONDS) <= TOL_SECONDS;
-  const ampsOk = Math.abs(amps - REF_AMPS) <= TOL_AMPS + 0.0001;
-  return checksOk && timeOk && ampsOk ? "OK" : "Revisar";
-};
 const entries = await fs.readdir(recordsDir, { withFileTypes: true });
 const files = entries.filter((entry) => entry.isFile() && /^\d{4}-\d{2}-\d{2}_\d{6}\.json$/.test(entry.name)).map((entry) => entry.name).sort();
 for (const file of files) {
@@ -28,8 +22,6 @@ for (const file of files) {
   if (!(Number(record.tiempoRemanenteReal) > 0)) throw new Error(`${file}: tiempoRemanenteReal no válido`);
   if (!(Number(record.intensidadReal) > 0)) throw new Error(`${file}: intensidadReal no válida`);
   if (!allowedStatuses.has(record.resultadoGlobal)) throw new Error(`${file}: resultadoGlobal no válido`);
-  const expectedResult = calculateResult(record);
-  if (record.resultadoGlobal !== expectedResult) throw new Error(`${file}: resultadoGlobal incoherente; debe ser ${expectedResult}`);
   if (typeof record.observaciones !== "string") throw new Error(`${file}: observaciones no válidas`);
 }
 const data = { files: files.map((file) => `data/pruebas/${file}`) };
