@@ -620,7 +620,23 @@ const setRecordResultVisual = (result) => {
   el.textContent = result || "Pendiente";
   el.className = `record-result ${result === "OK" ? "ok" : result === "Revisar" ? "review" : "pending"}`;
 };
-const updateRecordResult = () => setRecordResultVisual(calculateRecordResult(readRecordForm()));
+const setMeasurementVisual = (selector, value, reference, tolerance, unit) => {
+  const el = $(selector);
+  const raw = el.value.trim();
+  el.classList.remove("field-ok", "field-review");
+  el.removeAttribute("aria-invalid");
+  el.title = `Rango OK: ${formatConfigNumber(reference - tolerance)}–${formatConfigNumber(reference + tolerance)} ${unit}`;
+  if (!raw) return;
+  const ok = Number.isFinite(value) && value > 0 && Math.abs(value - reference) <= tolerance + 0.0001;
+  el.classList.add(ok ? "field-ok" : "field-review");
+  el.setAttribute("aria-invalid", String(!ok));
+};
+const updateRecordResult = () => {
+  const record = readRecordForm();
+  setMeasurementVisual("#recordTime", record.tiempoRemanenteReal, REF_SECONDS, TOL_SECONDS, "s");
+  setMeasurementVisual("#recordAmps", record.intensidadReal, REF_AMPS, TOL_AMPS, "A");
+  setRecordResultVisual(calculateRecordResult(record));
+};
 const syncStatusToggle = (toggle, value) => {
   const input = document.getElementById(toggle.dataset.input);
   input.value = value;

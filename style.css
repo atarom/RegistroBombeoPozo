@@ -1408,6 +1408,17 @@ color:#fff;
 padding:.38rem .58rem;
 font:inherit;
 }
+.record-form input.field-ok {
+border-color:#2f9d65;
+background:#132a20;
+box-shadow:0 0 0 1px #2f9d65 inset;
+}
+.record-form input.field-review {
+border-color:#c6514b;
+background:#351918;
+color:#ffd5d2;
+box-shadow:0 0 0 1px #c6514b inset;
+}
 .record-checks-grid {
 display:grid;
 grid-template-columns:repeat(2,minmax(0,1fr));
