@@ -17,6 +17,7 @@ for (const file of files) {
   const fullPath = path.join(recordsDir, file);
   const record = JSON.parse(await fs.readFile(fullPath, "utf8"));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(record.fecha || "")) throw new Error(`${file}: fecha no válida`);
+  if (record.hora !== undefined && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(record.hora)) throw new Error(`${file}: hora no válida`);
   if (typeof record.realizadoPor !== "string" || !record.realizadoPor.trim()) throw new Error(`${file}: realizadoPor no válido`);
   for (const key of requiredStatuses) if (!allowedStatuses.has(record[key])) throw new Error(`${file}: ${key} no válido`);
   if (!(Number(record.tiempoRemanenteReal) > 0)) throw new Error(`${file}: tiempoRemanenteReal no válido`);

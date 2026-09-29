@@ -600,6 +600,7 @@ const calculateRecordResult = (record) => {
 };
 const readRecordForm = () => ({
   fecha: $("#recordDate").value,
+  hora: $("#recordHour").value,
   realizadoPor: $("#recordBy").value.trim(),
   pruebaAlarma: $("#recordAlarm").value,
   boyaParo: $("#recordStop").value,
@@ -655,7 +656,7 @@ const downloadRecord = (record) => {
 };
 const validateRecord = (record) => {
   const statuses = recordStatusKeys.map((key) => record[key]);
-  if (!record.fecha || !record.realizadoPor || statuses.some((value) => !value)) return "Completa todos los campos obligatorios.";
+  if (!record.fecha || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(record.hora || "") || !record.realizadoPor || statuses.some((value) => !value)) return "Completa todos los campos obligatorios.";
   if (!(record.tiempoRemanenteReal > 0) || !(record.intensidadReal > 0)) return "Tiempo e intensidad deben ser valores mayores que cero.";
   const expectedResult = calculateRecordResult(record);
   if (!expectedResult || record.resultadoGlobal !== expectedResult) return "No se ha podido calcular correctamente el resultado global.";
@@ -669,6 +670,13 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 const parseRecordTimestamp = (path, record) => {
+  const dateTime = `${record.fecha || ""}T${record.hora || ""}`;
+  if (/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(dateTime)) {
+    const [datePart, timePart] = dateTime.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm] = timePart.split(":").map(Number);
+    return Date.UTC(y, m - 1, d, hh, mm, 0);
+  }
   const name = path.split("/").pop() || "";
   const match = name.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})?\.json$/);
   if (match) {
@@ -685,6 +693,7 @@ const formatRecordMoment = (item) => {
   if (!item.timestamp) return item.record.fecha || "Sin fecha";
   const d = new Date(item.timestamp);
   const date = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.record.hora || "")) return `${date} ${item.record.hora}`;
   const name = item.path.split("/").pop() || "";
   const hasTime = /_\d{4,6}\.json$/.test(name);
   return hasTime ? `${date} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}` : date;
@@ -693,6 +702,7 @@ const showRecord = (item) => {
   const r = item.record;
   const rows = [
     ["Fecha", r.fecha],
+    ["Hora", r.hora || "No registrada"],
     ["Realizado por", r.realizadoPor],
     ["Prueba ALARMA", r.pruebaAlarma, true],
     ["Boya PARO flotando", r.boyaParo, true],
@@ -770,7 +780,7 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       if (!labelIndexes.has(i)) return "";
       const x = xAt(item, i);
       const d = new Date(item.timestamp);
-      const label = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}/${String(d.getUTCFullYear()).slice(-2)}`;
+      const label = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
       return `<text class="chart-label" x="${x}" y="${height - 20}" text-anchor="middle">${label}</text>`;
     })
     .join("");
