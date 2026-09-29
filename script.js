@@ -40,6 +40,7 @@ const state = {
     latched: false,
     raf: 0,
     last: 0,
+    elapsed: 0,
     dryRun: false
   }
 };
@@ -145,7 +146,13 @@ const setFloat = (el, on) => {
   setFloatVisual(el, CONFIG.simulation.floatAngle, -30);
 };
 const setPump = (on) => {
+  const wasOn = state.pump;
   state.pump = on;
+  if (state.mode === "sim" && on && !wasOn) {
+    state.sim.elapsed = 0;
+    state.sim.last = 0;
+    ui.timer.textContent = "0.0 s";
+  }
   ui.pipeWater.style.transitionDuration = on ? ".3s" : ".95s";
   ui.discharge.classList.toggle("pumping", on);
   ui.pump.classList.toggle("run", on);
@@ -214,7 +221,7 @@ const syncSimFloats = () => {
   }
   setDryRun(state.pump && state.sim.level <= 0);
   $("#simStatus").innerHTML =
-    `Nivel <b>${state.sim.level.toFixed(1)}%</b> · PARO <b>${floatText("stop", stop)}</b> · MARCHA <b>${floatText("run", run)}</b> · ALARMA <b>${alarm ? "activa" : floatText("alarm", false)}</b> · Bomba <b>${state.pump ? "ON" : "OFF"}</b>` +
+    `Nivel <b>${state.sim.level.toFixed(1)}%</b> · Tiempo <b>${state.sim.elapsed.toFixed(1)} s</b> · PARO <b>${floatText("stop", stop)}</b> · MARCHA <b>${floatText("run", run)}</b> · ALARMA <b>${alarm ? "activa" : floatText("alarm", false)}</b> · Bomba <b>${state.pump ? "ON" : "OFF"}</b>` +
     (state.sim.dryRun
       ? "<br><b>SIMULACIÓN:</b> bomba funcionando en vacío. Detener inmediatamente."
       : "");
@@ -241,6 +248,8 @@ const simDrainTick = (now) => {
   if (!state.sim.last) state.sim.last = now;
   const dt = Math.min((now - state.sim.last) / 1000, 0.1);
   state.sim.last = now;
+  state.sim.elapsed += dt;
+  ui.timer.textContent = state.sim.elapsed.toFixed(1) + " s";
   if (state.sim.level > 0) {
     setSimLevel(
       Math.max(0, state.sim.level - CONFIG.simulation.drainPerSecond * dt)
@@ -249,7 +258,7 @@ const simDrainTick = (now) => {
   if (state.sim.level <= 0 && state.pump) {
     setDryRun(true);
     $("#simStatus").innerHTML =
-      "Nivel <b>0%</b> · Bomba <b>ON</b><br><b>SIMULACIÓN:</b> bomba funcionando en vacío. Vibración y calentamiento excesivos.";
+      `Nivel <b>0%</b> · Tiempo <b>${state.sim.elapsed.toFixed(1)} s</b> · Bomba <b>ON</b><br><b>SIMULACIÓN:</b> bomba funcionando en vacío. Vibración y calentamiento excesivos.`;
   }
   if (state.pump) state.sim.raf = requestAnimationFrame(simDrainTick);
   else {
@@ -311,7 +320,9 @@ const enterMode = (mode) => {
     state.sim.overrides = { stop: "auto", run: "auto", alarm: "auto" };
     state.sim.latched = false;
     state.sim.dryRun = false;
+    state.sim.elapsed = 0;
     setPump(false);
+    ui.timer.textContent = "0.0 s";
     setAlarm(false);
     setWater(state.sim.level);
     renderSim();
@@ -841,6 +852,7 @@ const resetApp = (switchMode = true) => {
     latched: false,
     raf: 0,
     last: 0,
+    elapsed: 0,
     dryRun: false
   };
   if (switchMode) state.mode = "guide";
@@ -917,16 +929,23 @@ $("#simLevel").addEventListener("input", (e) => setSimLevel(e.target.value));
   });
 });
 $("#simAuto").addEventListener("click", () => {
+  if (state.sim.control === "auto") return;
   state.sim.control = "auto";
   state.sim.latched = false;
+  setPump(false);
   setDryRun(false);
+  state.sim.elapsed = 0;
+  ui.timer.textContent = "0.0 s";
   renderSim();
 });
 $("#simManual").addEventListener("click", () => {
+  if (state.sim.control === "manual") return;
   state.sim.control = "manual";
   state.sim.latched = false;
   setDryRun(false);
   setPump(false);
+  state.sim.elapsed = 0;
+  ui.timer.textContent = "0.0 s";
   renderSim();
 });
 $("#simPumpOn").addEventListener("click", () => {
