@@ -27,7 +27,3 @@ Las referencias, tolerancias y parámetros de simulación se modifican únicamen
 ## Simulación
 
 La simulación libre es didáctica e independiente del registro real. Incluye nivel de agua, boyas, funcionamiento AUTO/MANUAL y cronómetro de bombeo.
-
-## Publicación
-
-GitHub Pages debe publicar la rama `main` desde `/ (root)`.
