@@ -1,0 +1,14 @@
+{
+  "fecha": "2026-10-18",
+  "hora": "08:40",
+  "realizadoPor": "1º1ª",
+  "pruebaAlarma": "OK",
+  "boyaParo": "OK",
+  "forzarMarcha": "OK",
+  "vaciadoAutomatico": "OK",
+  "modoManual": "OK",
+  "tiempoRemanenteReal": 53,
+  "intensidadReal": 3,
+  "observaciones": "Nuevo interruptor de flotación de paro",
+  "resultadoGlobal": "OK"
+}
