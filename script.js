@@ -511,7 +511,14 @@ function render() {
   }
 }
 const pad2 = (n) => String(n).padStart(2, "0");
-const localDateValue = (date = new Date()) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+const localDateValue = (date = new Date()) => `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
+const normalizeRecordDate = (value) => {
+  const match = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(value);
+  if (!match) return "";
+  const iso = `${match[1]}-${match[2]}-${match[3]}`;
+  const date = new Date(`${iso}T12:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.getUTCFullYear() === Number(match[1]) && date.getUTCMonth() + 1 === Number(match[2]) && date.getUTCDate() === Number(match[3]) ? iso : "";
+};
 const recordStatusKeys = ["pruebaAlarma", "boyaParo", "forzarMarcha", "vaciadoAutomatico", "modoManual"];
 const calculateRecordResult = (record) => {
   const statuses = recordStatusKeys.map((key) => record[key]);
@@ -524,7 +531,7 @@ const calculateRecordResult = (record) => {
   return checksOk && timeOk && ampsOk ? "OK" : "Revisar";
 };
 const readRecordForm = () => ({
-  fecha: $("#recordDate").value,
+  fecha: normalizeRecordDate($("#recordDate").value.trim()),
   hora: $("#recordHour").value,
   realizadoPor: $("#recordBy").value.trim(),
   pruebaAlarma: $("#recordAlarm").value,
@@ -601,7 +608,8 @@ const downloadRecord = (record) => {
 };
 const validateRecord = (record) => {
   const statuses = recordStatusKeys.map((key) => record[key]);
-  if (!record.fecha || !HOUR_RE.test(record.hora || "") || !record.realizadoPor || statuses.some((value) => !value)) return "Completa todos los campos obligatorios.";
+  if (!record.fecha) return "Introduce una fecha válida con formato yyyy/mm/dd.";
+  if (!HOUR_RE.test(record.hora || "") || !record.realizadoPor || statuses.some((value) => !value)) return "Completa todos los campos obligatorios.";
   if (!(record.tiempoRemanenteReal > 0) || !(record.intensidadReal > 0)) return "Tiempo e intensidad deben ser valores mayores que cero.";
   const expectedResult = calculateRecordResult(record);
   if (!expectedResult || record.resultadoGlobal !== expectedResult) return "No se ha podido calcular correctamente el resultado global.";
@@ -820,6 +828,21 @@ document.querySelectorAll(".status-toggle").forEach((toggle) => {
     syncStatusToggle(toggle, button.dataset.value);
     updateRecordResult();
   });
+});
+on("#recordDate", "input", (event) => {
+  const field = event.target;
+  const position = field.selectionStart;
+  const digitsBefore = field.value.slice(0, position).replace(/\D/g, "").length;
+  const digits = field.value.replace(/\D/g, "").slice(0, 8);
+  const formatted = [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6)].filter(Boolean).join("/");
+  field.value = formatted;
+  let cursor = 0;
+  let count = 0;
+  while (cursor < formatted.length && count < digitsBefore) {
+    if (/\d/.test(formatted[cursor])) count++;
+    cursor++;
+  }
+  field.setSelectionRange(cursor, cursor);
 });
 on("#recordHour", "input", (event) => {
   const digits = event.target.value.replace(/\D/g, "").slice(0, 4);
