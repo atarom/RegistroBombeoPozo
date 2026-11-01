@@ -63,17 +63,16 @@ const floatAngleAt = (name, level) => {
   const p = Math.max(0, Math.min(1, (level - (t - b * 0.75)) / b));
   return simulation.floatAngle * p;
 };
+const cableLength = (el) => parseFloat(getComputedStyle(el).getPropertyValue("--cable")) || 0;
 const floatRiseAt = (el, level) => {
-  const base =
-    parseFloat(getComputedStyle(el).getPropertyValue("--cable")) || 0;
+  const base = cableLength(el);
   const surface = ui.tank.clientHeight * (1 - level / 100), target = surface - el.offsetTop - 28;
   return Math.min(0, Math.max(-Math.max(0, base - 58), target - base));
 };
 const drawCable = (el, rise = 0) => {
   const path = el.querySelector(".cable-path");
   if (!path) return;
-  const base =
-    parseFloat(getComputedStyle(el).getPropertyValue("--cable")) || 0;
+  const base = cableLength(el);
   const x = 46,
     y = base + rise;
   if (rise < -3) {
@@ -155,13 +154,7 @@ const setAlarm = (on, move = true) => {
   ui.siren.classList.toggle("on", on);
   updateLcd();
 };
-const simFloatState = (name) => {
-  const o = sim.overrides[name];
-  return (
-    o === "up" ||
-    (o === "auto" && sim.level >= simulation.thresholds[name])
-  );
-};
+const simFloatState = (name) => sim.overrides[name] === "up" || (sim.overrides[name] === "auto" && sim.level >= simulation.thresholds[name]);
 const simFloatAngle = (name) => {
   const o = sim.overrides[name];
   return o === "up"
@@ -488,34 +481,14 @@ function render() {
     on("#restartGuide", "click", () => resetApp());
     return;
   }
-  const buttons = [];
-  if (s.action) {
-    buttons.push(
-      `<button class="primary" id="actionBtn">${s.actionLabel}</button>`
-    );
-  }
-  buttons.push(
-    `<button class="good" id="confirmBtn">${s.confirmLabel}</button>`
-  );
-  if (s.fail) {
-    buttons.push('<button id="failBtn">No funciona correctamente</button>');
-  }
-  ui.actions.innerHTML = buttons.join("");
-  if (s.action) {
-    on("#actionBtn", "click", s.action);
-  }
+  ui.actions.innerHTML = `${s.action ? `<button class="primary" id="actionBtn">${s.actionLabel}</button>` : ""}<button class="good" id="confirmBtn">${s.confirmLabel}</button>${s.fail ? '<button id="failBtn">No funciona correctamente</button>' : ""}`;
+  if (s.action) on("#actionBtn", "click", s.action);
   on("#confirmBtn", "click", async () => {
-    if (!s.confirm()) {
-      return fail(
-        "Realiza primero la acción indicada y comprueba el resultado."
-      );
-    }
+    if (!s.confirm()) return fail("Realiza primero la acción indicada y comprueba el resultado.");
     if (s.onConfirm) await s.onConfirm();
     else next();
   });
-  if (s.fail) {
-    on("#failBtn", "click", () => fail(s.fail));
-  }
+  if (s.fail) on("#failBtn", "click", () => fail(s.fail));
 }
 const pad2 = (n) => String(n).padStart(2, "0");
 const localDateValue = (date = new Date()) => `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
@@ -725,7 +698,7 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
     .join("");
   const labelWidth = compact ? 38 : 78;
   const minSpacing = labelWidth + 12;
-  const labelCandidates = items.map((item, i) => ({ item, i, x: xAt(item, i) }));
+  const labelCandidates = items.map((item, i) => ({ item, x: points[i][0] }));
   const shownLabels = [];
   const addLabel = (candidate) => {
     if (!shownLabels.some((shown) => Math.abs(shown.x - candidate.x) < minSpacing)) shownLabels.push(candidate);
@@ -749,8 +722,9 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
   const circles = items
     .map((item, i) => {
       const [x, y] = points[i];
-      const value = Number(item.record[key]);
-      return `<circle class="chart-point" tabindex="0" role="button" aria-label="${escapeHtml(formatRecordMoment(item))}: ${value.toFixed(1)} ${unit}" data-record-index="${i}" cx="${x}" cy="${y}" r="6"><title>${escapeHtml(formatRecordMoment(item))} · ${value.toFixed(1)} ${unit}</title></circle>`;
+      const value = Number(item.record[key]).toFixed(1);
+      const moment = escapeHtml(formatRecordMoment(item));
+      return `<circle class="chart-point" tabindex="0" role="button" aria-label="${moment}: ${value} ${unit}" data-record-index="${i}" cx="${x}" cy="${y}" r="6"><title>${moment} · ${value} ${unit}</title></circle>`;
     })
     .join("");
   container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-label="Gráfica histórica"><rect class="chart-band" x="${left}" y="${bandTop}" width="${plotW}" height="${Math.max(0, bandBottom - bandTop)}"></rect>${grid}<line class="chart-axis" x1="${left}" x2="${left}" y1="${top}" y2="${height - bottom}"></line><line class="chart-axis" x1="${left}" x2="${width - right}" y1="${height - bottom}" y2="${height - bottom}"></line><line class="chart-ref" x1="${left}" x2="${width - right}" y1="${yAt(reference)}" y2="${yAt(reference)}"></line><path class="chart-line" d="${path}"></path>${circles}${xLabels}</svg>`;
@@ -915,11 +889,8 @@ const setSimControl = (control) => {
   ui.timer.textContent = "0.0 s";
   renderSim();
 };
-[
-  ["simStop", "stop"],
-  ["simRun", "run"],
-  ["simAlarm", "alarm"]
-].forEach(([id, name]) => {
+["stop", "run", "alarm"].forEach((name) => {
+  const id = `sim${name[0].toUpperCase()}${name.slice(1)}`;
   $("#" + id).addEventListener("change", (e) => {
     sim.overrides[name] = e.target.value;
     syncSimFloats();
@@ -941,12 +912,8 @@ on("#simPumpOff", "click", () => {
   stopSimDrain();
   renderSim();
 });
-[
-  ["stopFloat", "stop"],
-  ["runFloat", "run"],
-  ["alarmFloat", "alarm"]
-].forEach(([id, name]) => {
-  $("#" + id).addEventListener("click", () => {
+["stop", "run", "alarm"].forEach((name) => {
+  ui[name].addEventListener("click", () => {
     if (state.mode !== "sim") return;
     sim.overrides[name] =
       simFloatAngle(name) > simulation.floatAngle * 0.5 ? "down" : "up";
