@@ -850,7 +850,6 @@ on("#resetBtn", "click", () => {
   resetApp();
   updateModeUrl("guide");
 });
-on("#reloadHistory", "click", loadHistory);
 on("#closeRecordModal", "click", hideRecord);
 on("#recordModal", "click", (event) => {
   if (event.target === $("#recordModal")) hideRecord();
