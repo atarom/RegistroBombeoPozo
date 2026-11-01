@@ -4,7 +4,7 @@
 
 <h1 align="center">Mantenimiento preventivo · Bomba de aguas fecales</h1>
 
-<p align="center">Guía didáctica, simulación, registro de pruebas reales e histórico para mantenimiento preventivo de una bomba de aguas fecales.</p>
+<p align="center">Guía didáctica, simulación, registro de pruebas reales e histórico para mantenimiento preventivo de bombeo.</p>
 
 ## Registro de pruebas
 
