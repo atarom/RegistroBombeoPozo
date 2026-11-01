@@ -352,11 +352,7 @@ const stopManual = () => {
   const t = (performance.now() - state.start) / 1000;
   setPump(false);
   $("#measuredTime").value = t.toFixed(1);
-  ui.actions.innerHTML =
-    '<button class="good" id="compareBtn">Comparar resultados</button>';
-  on("#compareBtn", "click", evaluate);
-  ui.notice.innerHTML =
-    '<div class="notice">Parada inmediata al detectar por sonido que la bomba empieza a quedarse sin agua. Nunca mantenerla trabajando en vacío.</div>';
+  next();
 };
 const evaluate = () => {
   const t = Number($("#measuredTime").value);
