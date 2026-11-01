@@ -749,10 +749,13 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       const [x, y] = points[i];
       const value = Number(item.record[key]).toFixed(1);
       const moment = escapeHtml(formatRecordMoment(item));
-      return `<circle class="chart-point" tabindex="0" role="button" aria-label="${moment}: ${value} ${unit}" data-record-index="${i}" cx="${x}" cy="${y}" r="6"><title>${moment} · ${value} ${unit}</title></circle>`;
+      const hasNotes = String(item.record.observaciones || "").trim().length > 0;
+      const notesStyle = hasNotes ? ' style="fill:#f59e0b;stroke:#a8660a"' : "";
+      const notesLabel = hasNotes ? " · Con observaciones" : "";
+      return `<circle class="chart-point"${notesStyle} tabindex="0" role="button" aria-label="${moment}: ${value} ${unit}${notesLabel}" data-record-index="${i}" cx="${x}" cy="${y}" r="6"><title>${moment} · ${value} ${unit}${notesLabel}</title></circle>`;
     })
     .join("");
-  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-label="Gráfica histórica"><rect class="chart-band" x="${left}" y="${bandTop}" width="${plotW}" height="${Math.max(0, bandBottom - bandTop)}"></rect>${grid}<line class="chart-axis" x1="${left}" x2="${left}" y1="${top}" y2="${height - bottom}"></line><line class="chart-axis" x1="${left}" x2="${width - right}" y1="${height - bottom}" y2="${height - bottom}"></line><line class="chart-ref" x1="${left}" x2="${width - right}" y1="${yAt(reference)}" y2="${yAt(reference)}"></line><path class="chart-line" d="${path}"></path>${circles}${xLabels}</svg>`;
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" aria-label="Gráfica histórica"><rect class="chart-band" x="${left}" y="${bandTop}" width="${plotW}" height="${Math.max(0, bandBottom - bandTop)}"></rect>${grid}<line class="chart-axis" x1="${left}" x2="${left}" y1="${top}" y2="${height - bottom}"></line><line class="chart-axis" x1="${left}" x2="${width - right}" y1="${height - bottom}" y2="${height - bottom}"></line><line class="chart-ref" x1="${left}" x2="${width - right}" y1="${yAt(reference)}" y2="${yAt(reference)}"></line><path class="chart-line" d="${path}"></path>${circles}${xLabels}</svg><div role="note" style="display:flex;align-items:center;gap:6px;margin-top:6px;color:var(--muted);font-size:12px"><span aria-hidden="true" style="color:#f59e0b;font-size:16px">●</span>Con observaciones</div>`;
   container.querySelectorAll(".chart-point").forEach((point) => {
     const open = () => showRecord(items[Number(point.dataset.recordIndex)]);
     point.addEventListener("click", open);
