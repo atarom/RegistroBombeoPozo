@@ -42,6 +42,7 @@ const state = {
   pump: false,
   alarm: false,
   alarmPhase: 0,
+  guideAnimation: 0,
   timer: null,
   start: 0,
   mode: "guide",
@@ -179,7 +180,7 @@ const syncSimFloats = () => {
   ["stop", "run", "alarm"].forEach((name) => setFloatVisual(ui[name], simFloatAngle(name), simFloatRise(name)));
   setAlarm(alarm, false);
   if (sim.control === "auto") {
-    if (!sim.latched && stop && run) sim.latched = true;
+    if (!sim.latched && stop && (run || alarm)) sim.latched = true;
     if (sim.latched && !stop) sim.latched = false;
     setPump(sim.latched);
   }
@@ -272,6 +273,7 @@ const enterMode = (mode, updateUrl = true) => {
   if (!["guide", "sim", "register", "history"].includes(mode)) return;
   stopTimer();
   stopSimDrain();
+  state.guideAnimation++;
   state.mode = mode;
   if (updateUrl) updateModeUrl(mode);
   syncModeUi();
@@ -297,13 +299,15 @@ const enterMode = (mode, updateUrl = true) => {
 const animateWater = (from, to, duration, onFrame) =>
   new Promise((resolve) => {
     const start = performance.now();
+    const animation = state.guideAnimation;
     const tick = (now) => {
+      if (state.mode !== "guide" || animation !== state.guideAnimation) return resolve(false);
       const p = Math.min((now - start) / duration, 1);
       const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
       setWater(from + (to - from) * eased);
       if (onFrame) onFrame(p);
       if (p < 1) requestAnimationFrame(tick);
-      else resolve();
+      else resolve(true);
     };
     requestAnimationFrame(tick);
   });
@@ -316,7 +320,7 @@ const ok = (m) => (ui.result.innerHTML = `<div class="result ok">${m}</div>`);
 const autoDrain = async () => {
   setFloat(ui.run, false);
   let stopDropped = false;
-  await animateWater(
+  const completed = await animateWater(
     levels.initial,
     levels.remanent,
     simulation.autoDrainMs,
@@ -327,6 +331,7 @@ const autoDrain = async () => {
       }
     }
   );
+  if (!completed) return;
   setPump(false);
   next();
 };
@@ -372,7 +377,6 @@ const evaluate = () => {
     : ok("Valores dentro de referencia.");
 };
 const STEPS = [
-  { t: "Prueba de ALARMA", x: "Prueba independiente inicial: levanta manualmente la boya de <b>ALARMA</b>, comprueba las tres señales y vuelve a soltarla.", special: "alarm" },
   {
     t: "Comprobar PARO",
     x: "Con el depósito casi vacío, debe quedar agua por encima del remanente y la boya de <b>PARO</b> debe estar flotando.",
@@ -399,6 +403,20 @@ const STEPS = [
     confirmLabel: "Vaciado correcto",
     fail: "Revisar PARO, cableado, lógica de control y controlador."
   },
+  {
+    t: "Preparar prueba de ALARMA",
+    x: "Después de comprobar la puesta en marcha y el paro, espera a que el nivel vuelva a estar por encima de <b>PARO</b>. Verifica que PARO flota y MARCHA está colgando. La simulación recuperará ese nivel al pulsar el botón.",
+    action: () => { setWater(levels.initial); setFloat(ui.stop, true); setFloat(ui.run, false); },
+    actionLabel: "Restablecer nivel sobre PARO",
+    confirm: () => ui.stop.classList.contains("up") && !ui.run.classList.contains("up") && !state.pump,
+    confirmLabel: "Confirmar PARO flotando",
+    fail: "No inicies esta prueba con PARO caído: restablece primero el nivel suficiente para que PARO flote."
+  },
+  {
+    t: "Prueba de ALARMA",
+    x: "Con <b>PARO flotando</b> y <b>MARCHA colgando</b>, levanta ALARMA: deben activarse sirena, LED, mensaje y <b>arrancar la bomba</b>. Al soltar ALARMA, la bomba debe continuar hasta que caiga PARO.",
+    special: "alarm"
+  },
   { t: "Preparar MANUAL", x: "Accede al <b>menú 7</b> del controlador y prepara el funcionamiento manual.", confirm: () => true, confirmLabel: "Modo manual preparado" },
   { t: "Vaciar remanente", x: "Arranca manualmente la bomba. Mide el tiempo y observa la intensidad. <b>Al cambiar el sonido por falta de agua, detén inmediatamente.</b>", n: "Nunca mantener la bomba trabajando en vacío.", special: "manual" },
   { t: "Comparar resultados", x: `Introduce los valores obtenidos. Referencias: <b>${formatTimeReference()}</b> y <b>${formatAmpReference()}</b>.`, special: "compare" },
@@ -421,14 +439,17 @@ function render() {
       [
         '<button class="primary" id="alarmAction">Levantar ALARMA</button>',
         () => {
+          if (!ui.stop.classList.contains("up")) return fail("PARO debe estar flotando antes de levantar ALARMA.");
           setAlarm(true);
+          setPump(true);
           state.alarmPhase = 1;
           render();
         }
       ],
       [
-        '<button class="good" id="alarmAction">Sirena + LED + mensaje funcionan</button><button id="alarmFail">Falla alguna señal</button>',
+        '<button class="good" id="alarmAction">Señales y arranque correctos</button><button id="alarmFail">Falla alguna señal o el arranque</button>',
         () => {
+          if (!state.alarm || !state.pump) return fail("Comprueba que la alarma y la bomba estén activas.");
           state.alarmPhase = 2;
           render();
         }
@@ -442,10 +463,12 @@ function render() {
         }
       ],
       [
-        '<button class="good" id="alarmAction">Prueba de ALARMA completada</button>',
-        () => {
+        '<button class="good" id="alarmAction">Comprobar parada en PARO</button>',
+        async () => {
+          if (!state.pump) return fail("La bomba debe seguir en marcha después de soltar ALARMA.");
+          $("#alarmAction").disabled = true;
+          await autoDrain();
           state.alarmPhase = 0;
-          next();
         }
       ]
     ];
@@ -456,7 +479,7 @@ function render() {
     if (alarmFail) {
       alarmFail.addEventListener("click", () =>
         fail(
-          "Revisar boya de ALARMA, sirena exterior, LED rojo, mensaje en pantalla, cableado y configuración."
+          "Revisar boya de ALARMA, sirena exterior, LED rojo, mensaje en pantalla, arranque de bomba, cableado y configuración."
         )
       );
     }
@@ -485,8 +508,10 @@ function render() {
   if (s.action) on("#actionBtn", "click", s.action);
   on("#confirmBtn", "click", async () => {
     if (!s.confirm()) return fail("Realiza primero la acción indicada y comprueba el resultado.");
-    if (s.onConfirm) await s.onConfirm();
-    else next();
+    if (s.onConfirm) {
+      $("#confirmBtn").disabled = true;
+      await s.onConfirm();
+    } else next();
   });
   if (s.fail) on("#failBtn", "click", () => fail(s.fail));
 }
@@ -786,6 +811,7 @@ const loadHistory = async () => {
 const resetApp = (switchMode = true) => {
   stopTimer();
   stopSimDrain();
+  state.guideAnimation++;
   Object.assign(state, {
     step: 0,
     pump: false,
