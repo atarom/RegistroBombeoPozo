@@ -67,8 +67,12 @@ const floatAngleAt = (name, level) => {
 const cableLength = (el) => parseFloat(getComputedStyle(el).getPropertyValue("--cable")) || 0;
 const floatRiseAt = (el, level) => {
   const base = cableLength(el);
-  const surface = ui.tank.clientHeight * (1 - level / 100), target = surface - el.offsetTop - 28;
-  return Math.min(0, Math.max(-Math.max(0, base - 58), target - base));
+  const scale = el.getBoundingClientRect().width / el.offsetWidth || 1;
+  const tankRect = ui.tank.getBoundingClientRect();
+  const border = parseFloat(getComputedStyle(ui.tank).borderBottomWidth) || 0;
+  const surface = tankRect.bottom - border - ui.tank.clientHeight * level / 100;
+  const target = (surface - el.getBoundingClientRect().top) / scale - base - 28;
+  return Math.min(0, Math.max(-Math.max(0, base - 58), target));
 };
 const drawCable = (el, rise = 0) => {
   const path = el.querySelector(".cable-path");
@@ -840,6 +844,10 @@ const syncModeFromUrl = () => {
   const mode = modeFromUrl();
   if (state.mode !== mode) enterMode(mode, false);
 };
+window.addEventListener("resize", () => {
+  if (state.mode === "sim") syncSimFloats();
+  else updateGuideFloat();
+});
 window.addEventListener("popstate", syncModeFromUrl);
 window.addEventListener("hashchange", syncModeFromUrl);
 on("#resetBtn", "click", () => {
