@@ -18,7 +18,7 @@ Los campos de tiempo e intensidad se muestran en verde cuando están dentro de r
 
 Los JSON oficiales se suben a `data/pruebas/`. El workflow `Actualizar índice de pruebas` valida los archivos y regenera `data/index.json`.
 
-El histórico admite varias pruebas en un mismo día, las ordena por fecha y hora y permite abrir el detalle completo desde las gráficas. Los registros antiguos sin `hora` siguen siendo compatibles.
+El histórico admite varias pruebas en un mismo día, las ordena por fecha y hora y permite abrir el detalle completo desde las gráficas.
 
 ## Configuración
 
