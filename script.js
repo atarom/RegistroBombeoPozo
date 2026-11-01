@@ -686,7 +686,10 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
     container.innerHTML = "";
     return;
   }
-  const width = 960, height = 320, left = 66, right = 24, top = 22, bottom = 56;
+  const width = Math.max(260, Math.round(container.getBoundingClientRect().width || 960));
+  const compact = width < 640;
+  const height = compact ? 270 : 320;
+  const left = compact ? 44 : 66, right = compact ? 14 : 24, top = 22, bottom = compact ? 46 : 56;
   const plotW = width - left - right;
   const plotH = height - top - bottom;
   const lowerRef = reference - tolerance, upperRef = reference + tolerance;
@@ -703,11 +706,6 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
   };
   const yAt = (value) => top + ((yMax - value) / (yMax - yMin)) * plotH;
   const yTicks = Array.from({ length: 5 }, (_, i) => yMin + ((yMax - yMin) * i) / 4);
-  const labelIndexes = new Set();
-  const tickCount = Math.min(6, items.length);
-  for (let i = 0; i < tickCount; i++) {
-    labelIndexes.add(Math.round((i * (items.length - 1)) / Math.max(1, tickCount - 1)));
-  }
   const points = items.map((item, i) => [xAt(item, i), yAt(Number(item.record[key]))]);
   const path = points.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
   const bandTop = yAt(upperRef), bandBottom = yAt(lowerRef);
@@ -718,13 +716,27 @@ const renderChart = (container, items, key, unit, reference, tolerance) => {
       return `<line class="chart-grid" x1="${left}" x2="${width - right}" y1="${y}" y2="${y}"></line><text class="chart-label" x="${left - 10}" y="${y + 4}" text-anchor="end">${label}</text>`;
     })
     .join("");
-  const xLabels = items
-    .map((item, i) => {
-      if (!labelIndexes.has(i)) return "";
-      const x = xAt(item, i);
+  const labelWidth = compact ? 38 : 78;
+  const minSpacing = labelWidth + 12;
+  const labelCandidates = items.map((item, i) => ({ item, i, x: xAt(item, i) }));
+  const shownLabels = [];
+  const addLabel = (candidate) => {
+    if (!shownLabels.some((shown) => Math.abs(shown.x - candidate.x) < minSpacing)) shownLabels.push(candidate);
+  };
+  if (labelCandidates.length) {
+    addLabel(labelCandidates[0]);
+    addLabel(labelCandidates[labelCandidates.length - 1]);
+  }
+  labelCandidates.forEach(addLabel);
+  const xLabels = shownLabels
+    .sort((a, b) => a.x - b.x)
+    .map(({ item, x }) => {
       const d = new Date(item.timestamp);
-      const label = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
-      return `<text class="chart-label" x="${x}" y="${height - 20}" text-anchor="middle">${label}</text>`;
+      const date = `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}`;
+      const time = `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+      const label = compact ? date : `${date} ${time}`;
+      const safeX = Math.max(labelWidth / 2 + 3, Math.min(width - labelWidth / 2 - 3, x));
+      return `<text class="chart-label" x="${safeX}" y="${height - 15}" text-anchor="middle">${label}</text>`;
     })
     .join("");
   const circles = items
@@ -777,9 +789,15 @@ const loadHistory = async () => {
       return;
     }
     status.textContent = `${items.length} ${items.length === 1 ? "registro cargado" : "registros cargados"}. Pulsa cualquier punto para ver la prueba completa.`;
-    renderChart($("#ampsChart"), items, "intensidadReal", "A", REF_AMPS, TOL_AMPS);
-    renderChart($("#timeChart"), items, "tiempoRemanenteReal", "s", REF_SECONDS, TOL_SECONDS);
     charts.classList.remove("hidden");
+    const drawHistoryCharts = () => {
+      renderChart($("#ampsChart"), items, "intensidadReal", "A", REF_AMPS, TOL_AMPS);
+      renderChart($("#timeChart"), items, "tiempoRemanenteReal", "s", REF_SECONDS, TOL_SECONDS);
+    };
+    if (charts._chartResizeObserver) charts._chartResizeObserver.disconnect();
+    charts._chartResizeObserver = new ResizeObserver(drawHistoryCharts);
+    charts._chartResizeObserver.observe($("#ampsChart"));
+    drawHistoryCharts();
   } catch (error) {
     status.textContent = `No se ha podido cargar el histórico: ${error.message}`;
   }
