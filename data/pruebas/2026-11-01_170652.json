@@ -1,0 +1,14 @@
+{
+  "fecha": "2026-11-01",
+  "hora": "16:30",
+  "realizadoPor": "1º1ª",
+  "pruebaAlarma": "OK",
+  "boyaParo": "OK",
+  "forzarMarcha": "OK",
+  "vaciadoAutomatico": "OK",
+  "modoManual": "OK",
+  "tiempoRemanenteReal": 55,
+  "intensidadReal": 3,
+  "observaciones": "",
+  "resultadoGlobal": "OK"
+}
