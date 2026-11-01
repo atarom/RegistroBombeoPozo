@@ -260,6 +260,8 @@ bottom:48%;
 bottom:64%;
 }
 .pump{
+--pump-scale:1;
+transform:scale(var(--pump-scale));
 position:absolute;
 left:43%;
 bottom:10px;
@@ -411,18 +413,18 @@ background:linear-gradient(#8a6353,#5b3f37);
 }
 @keyframes vibe{
 50%{
-transform:translateX(1px);
+transform:scale(var(--pump-scale)) translateX(1px);
 }
 }
 @keyframes dryVibe{
 25%{
-transform:translate(-3px,1px) rotate(-1deg);
+transform:scale(var(--pump-scale)) translate(-3px,1px) rotate(-1deg);
 }
 50%{
-transform:translate(3px,-1px) rotate(1deg);
+transform:scale(var(--pump-scale)) translate(3px,-1px) rotate(1deg);
 }
 75%{
-transform:translate(-2px,-1px) rotate(0.7deg);
+transform:scale(var(--pump-scale)) translate(-2px,-1px) rotate(0.7deg);
 }
 }
 @keyframes pipeFlow{
@@ -949,7 +951,7 @@ left:34%;
 left:68%;
 }
 .pump{
-transform:scale(0.72);
+--pump-scale:0.72;
 transform-origin:bottom center;
 left:39%;
 }
