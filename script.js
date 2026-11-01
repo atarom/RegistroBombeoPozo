@@ -269,11 +269,18 @@ const syncModeUi = () => {
   });
   $("#resetBtn").disabled = !main;
 };
-const enterMode = (mode) => {
+const modeHashes = { guide: "guia", sim: "simulacion", register: "registro", history: "historico" };
+const modeFromUrl = () => Object.keys(modeHashes).find((mode) => modeHashes[mode] === decodeURIComponent(location.hash.slice(1)).toLowerCase()) || "guide";
+const updateModeUrl = (mode) => {
+  const hash = `#${modeHashes[mode]}`;
+  if (location.hash !== hash) history.pushState(null, "", hash);
+};
+const enterMode = (mode, updateUrl = true) => {
   if (!["guide", "sim", "register", "history"].includes(mode)) return;
   stopTimer();
   stopSimDrain();
   state.mode = mode;
+  if (updateUrl) updateModeUrl(mode);
   syncModeUi();
   if (mode === "sim") {
     Object.assign(sim, createSimState());
@@ -830,7 +837,16 @@ const resetApp = (switchMode = true) => {
   state.mode === "sim" ? renderSim() : state.mode === "guide" && render();
 };
 [["guideBtn", "guide"], ["simBtn", "sim"], ["registerBtn", "register"], ["historyBtn", "history"]].forEach(([id, mode]) => on(`#${id}`, "click", () => enterMode(mode)));
-on("#resetBtn", "click", () => resetApp());
+const syncModeFromUrl = () => {
+  const mode = modeFromUrl();
+  if (state.mode !== mode) enterMode(mode, false);
+};
+window.addEventListener("popstate", syncModeFromUrl);
+window.addEventListener("hashchange", syncModeFromUrl);
+on("#resetBtn", "click", () => {
+  resetApp();
+  updateModeUrl("guide");
+});
 on("#reloadHistory", "click", loadHistory);
 on("#closeRecordModal", "click", hideRecord);
 on("#recordModal", "click", (event) => {
@@ -945,6 +961,7 @@ setFloat(ui.stop, true);
 setFloat(ui.run, false);
 setFloat(ui.alarm, false);
 render();
+syncModeFromUrl();
 })().catch((error) => {
   const app = document.querySelector(".app");
   if (app) app.innerHTML = `<div class="card" style="padding:16px"><b>Error de configuración</b><div>${String(error.message || error)}</div></div>`;
